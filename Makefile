@@ -1,16 +1,16 @@
 ##
 ## EPITECH PROJECT, 2026
-## Makefile
+## 42sh
 ## File description:
-## makefile
+## Makefile for 42sh
 ##
 
 MAKEFLAGS += --no-print-directory
 
 CC      =   epiclang
 
-PROJECT =   MYSH
-NAME    =   mysh
+PROJECT =   42SH
+NAME    =   42sh
 LIB_NAME =  libmy.a
 
 # 2. SOURCES
@@ -44,9 +44,8 @@ OBJ     =   $(SRC:.c=.o)
 LIB_OBJ =   $(LIB_SRC:.c=.o)
 
 # 4. FLAGS
-CFLAGS  =   -I./include -Wall -Wextra
+CFLAGS  =   -I./include -Wall -Wextra -g
 LDFLAGS =   -L. -lmy -lncurses
-CSFML = -lcsfml-graphics -lcsfml-window -lcsfml-system -lcsfml-audio -lm
 TESTS_FLAGS = --coverage -lcriterion
 
 # ─── Macro: Fancy Header ─────────────────────────────────────────────────
@@ -81,12 +80,12 @@ $(LIB_NAME): $(LIB_OBJ)
 
 banner:
 	@echo "$(H_CYAN)                                                              $(END)"
-	@echo "$(H_CYAN) ███╗   ███╗██╗   ██╗███████╗██╗  ██╗                        $(END)"
-	@echo "$(H_CYAN) ████╗ ████║╚██╗ ██╔╝██╔════╝██║  ██║                        $(END)"
-	@echo "$(H_CYAN) ██╔████╔██║ ╚████╔╝ ███████╗███████║                        $(END)"
-	@echo "$(H_CYAN) ██║╚██╔╝██║  ╚██╔╝  ╚════██║██╔══██║                        $(END)"
-	@echo "$(H_CYAN) ██║ ╚═╝ ██║   ██║   ███████║██║  ██║                        $(END)"
-	@echo "$(H_CYAN) ╚═╝     ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝                        $(END)"
+	@echo "$(H_CYAN)  ██╗  ██╗██████╗ ███████╗██╗  ██╗                        $(END)"
+	@echo "$(H_CYAN)  ██║  ██║╚════██╗██╔════╝██║  ██║                        $(END)"
+	@echo "$(H_CYAN)  ███████║ █████╔╝███████╗███████║                        $(END)"
+	@echo "$(H_CYAN)  ╚════██║██╔═══╝ ╚════██║██╔══██║                        $(END)"
+	@echo "$(H_CYAN)       ██║███████╗███████║██║  ██║                        $(END)"
+	@echo "$(H_CYAN)       ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝                        $(END)"
 	@echo "$(H_CYAN)                                                              $(END)"
 
 clean:
@@ -94,6 +93,8 @@ clean:
 	@rm -f $(OBJ)
 	@rm -f $(LIB_OBJ)
 	@rm -f *.gcno *.gcda
+	@rm -f vgcore.*
+	@rm -f *~
 
 fclean: clean
 	$(call pretty_header, 🗑️ Full clean: objects binary tests 🗑️)
