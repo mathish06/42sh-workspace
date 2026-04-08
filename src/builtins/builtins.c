@@ -4,7 +4,7 @@
 ** File description:
 ** builtins for the env(s) commands
 */
-#include "../include/my.h"
+#include "../../include/my.h"
 
 static int is_alphanumeric(char *str)
 {

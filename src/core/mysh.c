@@ -5,7 +5,7 @@
 ** mysh for the minishell1
 */
 #define _GNU_SOURCE
-#include "../include/my.h"
+#include "../../include/my.h"
 
 static int handle_input(char *line, ssize_t read, char **env, env_t **env_list)
 {

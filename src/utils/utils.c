@@ -4,7 +4,7 @@
 ** File description:
 ** utils for the minishell1
 */
-#include "../include/my.h"
+#include "../../include/my.h"
 
 char *my_getenv(env_t *env, char *name)
 {

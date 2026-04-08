@@ -4,7 +4,7 @@
 ** File description:
 ** manage_list for the linked list
 */
-#include "../include/my.h"
+#include "../../include/my.h"
 
 env_t *create_node(char *line)
 {

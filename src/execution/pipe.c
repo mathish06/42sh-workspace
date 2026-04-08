@@ -4,7 +4,7 @@
 ** File description:
 ** pipe for the minishell2
 */
-#include "../include/my.h"
+#include "../../include/my.h"
 
 static void exec_left_child(command_t *cmd_a, char **env, env_t *env_list,
     int fd[2])

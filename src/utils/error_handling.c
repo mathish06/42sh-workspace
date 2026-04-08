@@ -4,7 +4,7 @@
 ** File description:
 ** error_handling for the minishell1
 */
-#include "../include/my.h"
+#include "../../include/my.h"
 
 void print_exec_error(char *cmd)
 {

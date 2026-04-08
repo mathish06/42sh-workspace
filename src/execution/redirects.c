@@ -4,7 +4,7 @@
 ** File description:
 ** redirects for the minishell2
 */
-#include "../include/my.h"
+#include "../../include/my.h"
 
 static void handle_redir_right(char *file)
 {

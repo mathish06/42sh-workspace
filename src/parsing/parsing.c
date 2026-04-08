@@ -4,7 +4,7 @@
 ** File description:
 ** parsing for the minishell2
 */
-#include "../include/my.h"
+#include "../../include/my.h"
 
 static char *extract_filename(char *raw_cmd, int *i)
 {

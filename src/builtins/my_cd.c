@@ -4,7 +4,7 @@
 ** File description:
 ** my_cd for the minishell1
 */
-#include "../include/my.h"
+#include "../../include/my.h"
 
 static void update_env_var(env_t **env, char *key, char *value)
 {

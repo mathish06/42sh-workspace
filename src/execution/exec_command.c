@@ -4,7 +4,7 @@
 ** File description:
 ** exec_command for the minishell 1
 */
-#include "../include/my.h"
+#include "../../include/my.h"
 
 void free_tab(char **tab)
 {
