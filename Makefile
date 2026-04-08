@@ -14,28 +14,28 @@ NAME    =   42sh
 LIB_NAME =  libmy.a
 
 # 2. SOURCES
-SRC     =   main.c							\
-			src/exec_command.c				\
-			src/manage_list.c				\
-			src/mysh.c						\
-			src/utils.c						\
-			src/builtins.c					\
-			src/error_handling.c			\
-			src/my_cd.c						\
-			src/parsing.c					\
-			src/redirects.c					\
-			src/pipe.c
+SRC     =   main.c										\
+			src/execution/exec_command.c				\
+			src/environment/manage_list.c				\
+			src/core/mysh.c								\
+			src/utils/utils.c							\
+			src/builtins/builtins.c						\
+			src/utils/error_handling.c					\
+			src/builtins/my_cd.c						\
+			src/parsing/parsing.c						\
+			src/execution/redirects.c					\
+			src/execution/pipe.c
 
-LIB_SRC =   lib/my/my_put_nbr.c				\
-			lib/my/my_putchar.c				\
-			lib/my/my_putstr.c				\
-			lib/my/my_str_to_word_array.c	\
-			lib/my/my_strcat.c				\
-			lib/my/my_strcmp.c				\
-			lib/my/my_strcpy.c				\
-			lib/my/my_strdup.c				\
-			lib/my/my_strlen.c				\
-			lib/my/my_strncpy.c				\
+LIB_SRC =   lib/my/my_put_nbr.c							\
+			lib/my/my_putchar.c							\
+			lib/my/my_putstr.c							\
+			lib/my/my_str_to_word_array.c				\
+			lib/my/my_strcat.c							\
+			lib/my/my_strcmp.c							\
+			lib/my/my_strcpy.c							\
+			lib/my/my_strdup.c							\
+			lib/my/my_strlen.c							\
+			lib/my/my_strncpy.c							\
 			lib/my/my_strndup.c
 
 # 3. OBJETS
