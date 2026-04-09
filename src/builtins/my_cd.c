@@ -20,10 +20,11 @@ static void update_env_var(env_t **env, char *key, char *value)
 int change_directory(char *path, env_t **env)
 {
     char buffer[4096];
-    char *old = my_strdup(buffer);
+    char *old;
 
     if (getcwd(buffer, 4096) == NULL)
         return 1;
+    old = my_strdup(buffer);
     if (chdir(path) != 0) {
         if (errno == ENOTDIR) {
             my_putstr(path);
