@@ -43,5 +43,9 @@ typedef struct mysh_s {
     env_t *env;
     struct termios original_term;
 } mysh_t;
+typedef struct pipe_ctx_s {
+    char **env;
+    struct env_s *env_list;
+} pipe_ctx_t;
 
 #endif
