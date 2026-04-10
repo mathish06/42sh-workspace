@@ -17,6 +17,18 @@ static void update_env_var(env_t **env, char *key, char *value)
     my_setenv(env, args);
 }
 
+static int handle_chdir_error(char *path, char *old)
+{
+    if (errno == ENOTDIR) {
+        my_putstr(path);
+        write(2, ": Not a directory.\n", 19);
+    } else {
+        perror(path);
+    }
+    free(old);
+    return 1;
+}
+
 int change_directory(char *path, env_t **env)
 {
     char buffer[4096];
@@ -25,16 +37,8 @@ int change_directory(char *path, env_t **env)
     if (getcwd(buffer, 4096) == NULL)
         return 1;
     old = my_strdup(buffer);
-    if (chdir(path) != 0) {
-        if (errno == ENOTDIR) {
-            my_putstr(path);
-            write(2, ": Not a directory.\n", 19);
-        } else {
-            perror(path);
-            free(old);
-            return 1;
-        }
-    }
+    if (chdir(path) != 0)
+        return handle_chdir_error(path, old);
     getcwd(buffer, 4096);
     update_env_var(env, "OLDPWD", old);
     update_env_var(env, "PWD", buffer);
