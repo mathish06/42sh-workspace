@@ -4,6 +4,7 @@
 ** File description:
 ** MyFile
 */
+#include <termios.h>
 
 #ifndef STRUC_H_
     #define STRUC_H_
