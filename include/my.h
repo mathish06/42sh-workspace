@@ -52,6 +52,7 @@ int my_cd(char **args, env_t **env);
 command_t *create_command_list(char *line);
 void manage_redirections(command_t *cmd);
 void exec_pipe(command_t *cmd_a, command_t *cmd_b, char **env, env_t *env_list);
+command_t *run_pipe_chain(command_t *curr, char **env, env_t **env_list);
 void free_command_list(command_t *head);
 
 #endif

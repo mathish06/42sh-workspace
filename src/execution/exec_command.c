@@ -160,8 +160,7 @@ void exec_command(command_t *cmd_list, char **env, env_t **env_list)
             continue;
         }
         if (curr->separator == SEP_PIPE && curr->next != NULL) {
-            exec_pipe(curr, curr->next, env, *env_list);
-            curr = curr->next->next;
+            curr = run_pipe_chain(curr, env, env_list);
             continue;
         }
         if (handle_builtins(curr->args, env_list) == 0)

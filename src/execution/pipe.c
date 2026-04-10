@@ -6,65 +6,112 @@
 */
 #include "../../include/my.h"
 
-static void exec_left_child(command_t *cmd_a, char **env, env_t *env_list,
-    int fd[2])
+static int count_pipe_chain(command_t *cmd_a)
+{
+    command_t *curr = cmd_a;
+    int count = 1;
+
+    while (curr != NULL && curr->separator == SEP_PIPE
+        && curr->next != NULL) {
+        count++;
+        curr = curr->next;
+    }
+    return count;
+}
+
+static void exec_pipe_child(command_t *cmd, pipe_ctx_t *ctx)
 {
     char *cmd_path;
 
-    close(fd[0]);
-    dup2(fd[1], 1);
-    close(fd[1]);
-    manage_redirections(cmd_a);
-    cmd_path = find_command(cmd_a->args[0], env_list);
+    manage_redirections(cmd);
+    cmd_path = find_command(cmd->args[0], ctx->env_list);
     if (cmd_path == NULL) {
-        write(2, cmd_a->args[0], my_strlen(cmd_a->args[0]));
+        write(2, cmd->args[0], my_strlen(cmd->args[0]));
         write(2, ": Command not found.\n", 21);
         exit(1);
     }
-    execve(cmd_path, cmd_a->args, env);
-    perror(cmd_a->args[0]);
+    execve(cmd_path, cmd->args, ctx->env);
+    print_exec_error(cmd->args[0]);
     exit(1);
 }
 
-static void exec_right_child(command_t *cmd_b, char **env, env_t *env_list,
-    int fd[2])
+static pid_t spawn_pipe_child(command_t *cmd, pipe_ctx_t *ctx,
+    int in_fd, int *pipefd)
 {
-    char *cmd_path;
+    pid_t pid = fork();
 
-    close(fd[1]);
-    dup2(fd[0], 0);
-    close(fd[0]);
-    manage_redirections(cmd_b);
-    cmd_path = find_command(cmd_b->args[0], env_list);
-    if (cmd_path == NULL) {
-        write(2, cmd_b->args[0], my_strlen(cmd_b->args[0]));
-        write(2, ": Command not found.\n", 21);
-        exit(1);
+    if (pid == -1)
+        return -1;
+    if (pid == 0) {
+        if (in_fd != 0) {
+            dup2(in_fd, 0);
+            close(in_fd);
+        }
+        if (pipefd != NULL) {
+            close(pipefd[0]);
+            dup2(pipefd[1], 1);
+            close(pipefd[1]);
+        }
+        exec_pipe_child(cmd, ctx);
     }
-    execve(cmd_path, cmd_b->args, env);
-    perror(cmd_b->args[0]);
-    exit(1);
+    return pid;
+}
+
+static int run_pipe_loop(command_t *cmd_a, pipe_ctx_t *ctx,
+    int count, pid_t *pids)
+{
+    command_t *curr = cmd_a;
+    int in_fd = 0;
+    int pipefd[2];
+    int i = 0;
+
+    while (i < count) {
+        if (i < count - 1 && pipe(pipefd) == -1)
+            return 1;
+        pids[i] = spawn_pipe_child(curr, ctx, in_fd,
+            (i < count - 1) ? pipefd : NULL);
+        if (in_fd != 0)
+            close(in_fd);
+        if (i < count - 1) {
+            close(pipefd[1]);
+            in_fd = pipefd[0];
+        }
+        curr = curr->next;
+        i++;
+    }
+    return 0;
 }
 
 void exec_pipe(command_t *cmd_a, command_t *cmd_b, char **env, env_t *env_list)
 {
-    int fd[2];
-    pid_t pid1;
-    pid_t pid2;
-    int status;
+    pipe_ctx_t ctx;
+    int count = count_pipe_chain(cmd_a);
+    pid_t *pids = malloc(sizeof(pid_t) * count);
+    int status = 0;
+    int i = 0;
 
-    if (pipe(fd) == -1) {
-        perror("pipe");
-        exit(1);
+    (void)cmd_b;
+    ctx.env = env;
+    ctx.env_list = env_list;
+    if (pids == NULL)
+        return;
+    if (run_pipe_loop(cmd_a, &ctx, count, pids) != 0) {
+        free(pids);
+        return;
     }
-    pid1 = fork();
-    if (pid1 == 0)
-        exec_left_child(cmd_a, env, env_list, fd);
-    pid2 = fork();
-    if (pid2 == 0)
-        exec_right_child(cmd_b, env, env_list, fd);
-    close(fd[0]);
-    close(fd[1]);
-    waitpid(pid1, &status, 0);
-    waitpid(pid2, &status, 0);
+    while (i < count) {
+        waitpid(pids[i], &status, 0);
+        i++;
+    }
+    free(pids);
+}
+
+command_t *run_pipe_chain(command_t *curr, char **env, env_t **env_list)
+{
+    exec_pipe(curr, curr->next, env, *env_list);
+    while (curr != NULL && curr->separator == SEP_PIPE)
+        curr = curr->next;
+    if (curr == NULL)
+        return NULL;
+    return curr->next;
 }

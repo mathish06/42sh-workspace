@@ -38,4 +38,9 @@ typedef struct command_s {
     struct command_s *next;
 } command_t;
 
+typedef struct pipe_ctx_s {
+    char **env;
+    struct env_s *env_list;
+} pipe_ctx_t;
+
 #endif
