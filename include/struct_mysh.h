@@ -38,4 +38,9 @@ typedef struct command_s {
     struct command_s *next;
 } command_t;
 
+typedef struct mysh_s {
+    env_t *env;
+    struct termios original_term;
+} mysh_t;
+
 #endif
