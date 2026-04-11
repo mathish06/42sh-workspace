@@ -43,12 +43,36 @@ static int handle_backspace(int *i, char c)
     return 1;
 }
 
+static void insert_char(char *buffer, int *i, int *max_len, char c)
+{
+    int pos = (*max_len);
+    int tmp = 0;
+
+    while (pos > (*i)) {
+        buffer[pos] = buffer[pos - 1];
+        pos--;
+    }
+    buffer[*i] = c;
+    (*max_len)++;
+    (*i)++;
+    for (tmp = (*i) - 1; tmp < (*max_len); tmp++)
+        write(1, &buffer[tmp], 1);
+    while (tmp > (*i)) {
+        write(1, "\b", 1);
+        tmp--;
+    }
+}
+
 static int handle_regular_char(char *buffer, int *i, int *max_len, char c)
 {
     if (c == '\n' || c == '\r') {
         write(1, "\n", 1);
         buffer[*i] = '\0';
         return 1;
+    }
+    if ((*i) < (*max_len)) {
+        insert_char(buffer, i, max_len, c);
+        return 0;
     }
     buffer[*i] = c;
     (*i)++;
