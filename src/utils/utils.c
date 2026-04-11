@@ -43,7 +43,7 @@ static int handle_backspace(int *i, char c)
     return 1;
 }
 
-static int handle_regular_char(char *buffer, int *i, char c)
+static int handle_regular_char(char *buffer, int *i, int *max_len, char c)
 {
     if (c == '\n' || c == '\r') {
         write(1, "\n", 1);
@@ -52,8 +52,29 @@ static int handle_regular_char(char *buffer, int *i, char c)
     }
     buffer[*i] = c;
     (*i)++;
+    if (*i > *max_len)
+        *max_len = *i;
     write(1, &c, 1);
     return 0;
+}
+
+static int handle_arrows(int *i, int total_length, char c)
+{
+    if (c != 27)
+        return 0;
+    read(0, &c, 1);
+    if (c != '[')
+        return 1;
+    read(0, &c, 1);
+    if (c == 'D' && *i > 0) {
+        (*i)--;
+        write(1, "\033[1D", 4);
+    }
+    if (c == 'C' && *i < total_length) {
+        (*i)++;
+        write(1, "\033[1C", 4);
+    }
+    return 1;
 }
 
 char *my_getline(void)
@@ -62,6 +83,7 @@ char *my_getline(void)
     int i = 0;
     char c;
     int txt = 0;
+    int max_len = 0;
 
     if (buffer == NULL)
         return NULL;
@@ -71,9 +93,9 @@ char *my_getline(void)
             free(buffer);
             return NULL;
         }
-        if (handle_backspace(&i, c) == 1)
+        if (handle_backspace(&i, c) == 1 || handle_arrows(&i, max_len, c) == 1)
             continue;
-        if (handle_regular_char(buffer, &i, c) == 1)
+        if (handle_regular_char(buffer, &i, &max_len, c) == 1)
             return buffer;
     }
 }
