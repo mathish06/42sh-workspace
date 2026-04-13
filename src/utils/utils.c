@@ -32,13 +32,21 @@ void free_command_list(command_t *head)
     }
 }
 
-static int handle_backspace(int *i, char c)
+static int handle_backspace(char *buffer, int *i, int *max_len, char c)
 {
     if (c != 127)
         return 0;
     if (*i > 0) {
         (*i)--;
-        write(1, "\b \b", 3);
+        for (int pos = (*i); pos < (*max_len); pos++)
+            buffer[pos] = buffer[pos + 1];
+        (*max_len)--;
+        write(1, "\b", 1);
+        for (int tmp = (*i); tmp < (*max_len); tmp++)
+            write(1, &buffer[tmp], 1);
+        write(1, " ", 1);
+        for (int tmp = (*max_len) + 1; tmp > (*i); tmp--)
+            write(1, "\b", 1);
     }
     return 1;
 }
@@ -117,7 +125,8 @@ char *my_getline(void)
             free(buffer);
             return NULL;
         }
-        if (handle_backspace(&i, c) == 1 || handle_arrows(&i, max_len, c) == 1)
+        if (handle_backspace(buffer, &i, &max_len, c) == 1
+            || handle_arrows(&i, max_len, c) == 1)
             continue;
         if (handle_regular_char(buffer, &i, &max_len, c) == 1)
             return buffer;
