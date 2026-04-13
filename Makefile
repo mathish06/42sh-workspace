@@ -147,3 +147,7 @@ H_CYAN = \033[96m
 WHITE = \033[37m
 CYAN = \033[36m
 YELLOW = \033[33m
+
+setup:
+	@git config core.hooksPath .githooks
+	@echo "$(BOLD)$(H_GREEN)✅ Git hooks configurés !$(END)"
