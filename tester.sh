@@ -6,26 +6,23 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 if [ ! -f "./42sh" ]; then
-    echo "❌ Fais un 'make' d'abord."
+    echo "Fais un 'make' d'abord."
     exit 1
 fi
 
 if [ ! -f "./tests/tests.txt" ]; then
-    echo "❌ Fichier tests.txt introuvable."
+    echo "Fichier tests.txt introuvable."
     exit 1
 fi
 
 TEST_COUNT=0
 PASSED=0
 
-# On lit le fichier ligne par ligne
 while IFS= read -r cmd || [ -n "$cmd" ]; do
-    # On ignore les lignes vides
     if [[ -z "$cmd" ]]; then
         continue
     fi
     
-    # On affiche les commentaires en bleu (comme des titres)
     if [[ "$cmd" == \#* ]]; then
         echo -e "\n${BLUE}$cmd${NC}"
         continue
@@ -55,12 +52,11 @@ while IFS= read -r cmd || [ -n "$cmd" ]; do
         fi
         if [ $diff_out -ne 0 ]; then
             echo "  -> Différences Stdout (< tcsh | > 42sh) :"
-            cat diff.out | head -n 5 # Affiche juste les 5 premières lignes du diff pour pas polluer
+            cat diff.out | head -n 5
         fi
     fi
 done < tests/tests.txt
 
-# Résumé final
 echo -e "\n======================="
 echo -e "Résultat : $PASSED / $TEST_COUNT tests réussis."
 echo -e "======================="
