@@ -12,7 +12,8 @@ static int handle_input(char *line, char **env, env_t **env_list)
     command_t *cmd_list;
 
     if (line == NULL) {
-        my_putstr("exit\n");
+        if (isatty(0))
+            my_putstr("exit\n");
         return 1;
     }
     if (my_strcmp(line, "exit") == 0) {
