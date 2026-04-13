@@ -2,6 +2,9 @@
 
 echo "=== Lancement des vérifications pré-push ==="
 
+# Nettoyage initial OBLIGATOIRE avant la norme
+make fclean > /dev/null
+
 # 1. Vérification de la norme
 echo "[1/3] Vérification de la norme (banana)..."
 banana-check-repo
@@ -24,11 +27,11 @@ fi
 echo "[3/3] Lancement des tests unitaires..."
 make tests_run > /dev/null
 if [ $? -ne 0 ]; then
-    echo "❌ Échec : Au moins un test unitaire a planté !"
+    echo "❌ Échec : Au moins un test unitaire a planté (ou gcovr a crashé) !"
     exit 1
 fi
 
-# Nettoyage
+# Nettoyage final
 make fclean > /dev/null
 echo "✅ Tout est au vert, autorisation du push !"
 exit 0
