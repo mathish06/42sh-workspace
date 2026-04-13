@@ -1,0 +1,34 @@
+#!/bin/bash
+
+echo "=== Lancement des vérifications pré-push ==="
+
+# 1. Vérification de la norme
+echo "[1/3] Vérification de la norme (banana)..."
+banana-check-repo
+if [ -s coding-style-reports.log ]; then
+    echo "❌ Échec : Fautes de norme détectées !"
+    cat coding-style-reports.log
+    exit 1
+fi
+rm -f coding-style-reports.log
+
+# 2. Vérification de la compilation
+echo "[2/3] Vérification de la compilation (make)..."
+make > /dev/null
+if [ $? -ne 0 ]; then
+    echo "❌ Échec : La compilation a échoué !"
+    exit 1
+fi
+
+# 3. Tests unitaires
+echo "[3/3] Lancement des tests unitaires..."
+make tests_run > /dev/null
+if [ $? -ne 0 ]; then
+    echo "❌ Échec : Au moins un test unitaire a planté !"
+    exit 1
+fi
+
+# Nettoyage
+make fclean > /dev/null
+echo "✅ Tout est au vert, autorisation du push !"
+exit 0
