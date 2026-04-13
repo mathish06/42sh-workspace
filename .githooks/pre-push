@@ -1,0 +1,44 @@
+#!/bin/bash
+
+echo "=== Lancement des vérifications pré-push ==="
+
+# Nettoyage initial OBLIGATOIRE avant la norme
+make fclean > /dev/null
+
+# 1. Vérification de la norme
+echo "[1/3] Vérification de la norme (banana)..."
+banana-check-repo
+if [ -s coding-style-reports.log ]; then
+    echo "❌ Échec : Fautes de norme détectées !"
+    cat coding-style-reports.log
+    exit 1
+fi
+rm -f coding-style-reports.log
+
+# 2. Vérification de la compilation
+echo "[2/3] Vérification de la compilation (make)..."
+make > /dev/null
+if [ $? -ne 0 ]; then
+    echo "❌ Échec : La compilation a échoué !"
+    exit 1
+fi
+
+# 3. Tests unitaires
+echo "[3/3] Lancement des tests unitaires..."
+make clean > /dev/null
+make fclean > /dev/null
+epiclang -o unit_tests $(find src lib -name "*.c") tests/unit_tests.c -I./include -lcriterion --coverage
+./unit_tests > tests_output.log 2>&1
+
+if [ $? -ne 0 ]; then
+    echo "❌ Échec : Au moins un test unitaire a planté !"
+    cat tests_output.log
+    rm tests_output.log
+    exit 1
+fi
+rm -f tests_output.log
+
+# Nettoyage final
+make fclean > /dev/null
+echo "✅ Tout est au vert, autorisation du push !"
+exit 0

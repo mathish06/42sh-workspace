@@ -1,0 +1,6 @@
+*.gcno
+*.gcda
+libmy.a
+42sh
+unit_tests
+*.o
