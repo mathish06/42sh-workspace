@@ -25,11 +25,18 @@ fi
 
 # 3. Tests unitaires
 echo "[3/3] Lancement des tests unitaires..."
-make tests_run > /dev/null
+make clean > /dev/null
+make fclean > /dev/null
+epiclang -o unit_tests $(find src lib -name "*.c") tests/unit_tests.c -I./include -lcriterion --coverage
+./unit_tests > tests_output.log 2>&1
+
 if [ $? -ne 0 ]; then
-    echo "❌ Échec : Au moins un test unitaire a planté (ou gcovr a crashé) !"
+    echo "❌ Échec : Au moins un test unitaire a planté !"
+    cat tests_output.log
+    rm tests_output.log
     exit 1
 fi
+rm -f tests_output.log
 
 # Nettoyage final
 make fclean > /dev/null
