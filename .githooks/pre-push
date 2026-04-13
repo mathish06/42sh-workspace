@@ -40,5 +40,5 @@ rm -f tests_output.log
 
 # Nettoyage final
 make fclean > /dev/null
-echo "✅ Tout est au vert, autorisation du push !"
+echo "✅ Push autorisé"
 exit 0
