@@ -6,6 +6,12 @@
 */
 #include "../../include/my.h"
 
+struct line_state_s {
+    int i;
+    int max_len;
+    int interactive;
+};
+
 char *my_getenv(env_t *env, char *name)
 {
     env_t *curr = env;
@@ -32,65 +38,89 @@ void free_command_list(command_t *head)
     }
 }
 
-static int handle_backspace(char *buffer, int *i, int *max_len, char c)
+static void redraw_after_backspace(char *buffer, struct line_state_s *state)
 {
-    if (c != 127)
-        return 0;
-    if (*i > 0) {
-        (*i)--;
-        for (int pos = (*i); pos < (*max_len); pos++)
-            buffer[pos] = buffer[pos + 1];
-        (*max_len)--;
-        write(1, "\b", 1);
-        for (int tmp = (*i); tmp < (*max_len); tmp++)
-            write(1, &buffer[tmp], 1);
-        write(1, " ", 1);
-        for (int tmp = (*max_len) + 1; tmp > (*i); tmp--)
-            write(1, "\b", 1);
-    }
-    return 1;
-}
-
-static void insert_char(char *buffer, int *i, int *max_len, char c)
-{
-    int pos = (*max_len);
     int tmp = 0;
 
-    while (pos > (*i)) {
-        buffer[pos] = buffer[pos - 1];
-        pos--;
-    }
-    buffer[*i] = c;
-    (*max_len)++;
-    (*i)++;
-    for (tmp = (*i) - 1; tmp < (*max_len); tmp++)
+    if (!state->interactive)
+        return;
+    write(1, "\b", 1);
+    tmp = state->i;
+    while (tmp < state->max_len) {
         write(1, &buffer[tmp], 1);
-    while (tmp > (*i)) {
+        tmp++;
+    }
+    write(1, " ", 1);
+    tmp = state->max_len + 1;
+    while (tmp > state->i) {
         write(1, "\b", 1);
         tmp--;
     }
 }
 
-static int handle_regular_char(char *buffer, int *i, int *max_len, char c)
+static int handle_backspace(char *buffer, struct line_state_s *state, char c)
+{
+    int pos = 0;
+
+    if (c != 127)
+        return 0;
+    if (state->i <= 0)
+        return 1;
+    state->i--;
+    pos = state->i;
+    while (pos < state->max_len) {
+        buffer[pos] = buffer[pos + 1];
+        pos++;
+    }
+    state->max_len--;
+    redraw_after_backspace(buffer, state);
+    return 1;
+}
+
+static void insert_char(char *buffer, struct line_state_s *state, char c)
+{
+    int pos = state->max_len;
+    int tmp = 0;
+
+    while (pos > state->i) {
+        buffer[pos] = buffer[pos - 1];
+        pos--;
+    }
+    buffer[state->i] = c;
+    state->max_len++;
+    state->i++;
+    if (state->interactive) {
+        for (tmp = state->i - 1; tmp < state->max_len; tmp++)
+            write(1, &buffer[tmp], 1);
+        while (tmp > state->i) {
+            write(1, "\b", 1);
+            tmp--;
+        }
+    }
+}
+
+static int handle_regular_char(char *buffer, struct line_state_s *state, char c)
 {
     if (c == '\n' || c == '\r') {
-        write(1, "\n", 1);
-        buffer[*i] = '\0';
+        if (state->interactive)
+            write(1, "\n", 1);
+        buffer[state->i] = '\0';
         return 1;
     }
-    if ((*i) < (*max_len)) {
-        insert_char(buffer, i, max_len, c);
+    if (state->i < state->max_len) {
+        insert_char(buffer, state, c);
         return 0;
     }
-    buffer[*i] = c;
-    (*i)++;
-    if (*i > *max_len)
-        *max_len = *i;
-    write(1, &c, 1);
+    buffer[state->i] = c;
+    state->i++;
+    if (state->i > state->max_len)
+        state->max_len = state->i;
+    if (state->interactive)
+        write(1, &c, 1);
     return 0;
 }
 
-static int handle_arrows(int *i, int total_length, char c)
+static int handle_arrows(int *i, int total_length, char c, int interactive)
 {
     if (c != 27)
         return 0;
@@ -100,22 +130,33 @@ static int handle_arrows(int *i, int total_length, char c)
     read(0, &c, 1);
     if (c == 'D' && *i > 0) {
         (*i)--;
-        write(1, "\033[1D", 4);
+        if (interactive)
+            write(1, "\033[1D", 4);
     }
     if (c == 'C' && *i < total_length) {
         (*i)++;
-        write(1, "\033[1C", 4);
+        if (interactive)
+            write(1, "\033[1C", 4);
     }
     return 1;
+}
+
+static int process_input_char(char *buffer, struct line_state_s *state, char c)
+{
+    if (handle_backspace(buffer, state, c) == 1
+        || handle_arrows(&state->i, state->max_len, c, state->interactive) == 1)
+        return 0;
+    if (handle_regular_char(buffer, state, c) == 1)
+        return 1;
+    return 0;
 }
 
 char *my_getline(void)
 {
     char *buffer = malloc(sizeof(char) * 1024);
-    int i = 0;
+    struct line_state_s state = {0, 0, isatty(0)};
     char c;
     int txt = 0;
-    int max_len = 0;
 
     if (buffer == NULL)
         return NULL;
@@ -125,10 +166,7 @@ char *my_getline(void)
             free(buffer);
             return NULL;
         }
-        if (handle_backspace(buffer, &i, &max_len, c) == 1
-            || handle_arrows(&i, max_len, c) == 1)
-            continue;
-        if (handle_regular_char(buffer, &i, &max_len, c) == 1)
+        if (process_input_char(buffer, &state, c) == 1)
             return buffer;
     }
 }
