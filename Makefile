@@ -25,7 +25,8 @@ SRC     =   main.c										\
 			src/parsing/parsing.c						\
 			src/execution/redirects.c					\
 			src/execution/pipe.c						\
-			src/termios/termios.c
+			src/termios/termios.c						\
+			src/parsing/lexer.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
