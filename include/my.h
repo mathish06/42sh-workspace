@@ -58,5 +58,7 @@ void free_command_list(command_t *head);
 void enable_raw_mode(struct termios *original_term);
 void disable_raw_mode(struct termios *original_term);
 char *my_getline(void);
+token_t *get_next_token(char *line, int *i);
+token_t *lexer(char *line);
 
 #endif
