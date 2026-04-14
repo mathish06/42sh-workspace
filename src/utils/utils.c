@@ -114,38 +114,42 @@ static int handle_regular_char(char *buffer, line_state_t *state, char c)
     return 0;
 }
 
-static int handle_arrows(int *i, int total_length, char c, int interactive)
+static int handle_arrows(char *buffer, line_state_t *state, char c,
+    history_t *hist)
 {
+    (void)buffer;
+    (void)hist;
     if (c != 27)
         return 0;
     read(0, &c, 1);
     if (c != '[')
         return 1;
     read(0, &c, 1);
-    if (c == 'D' && *i > 0) {
-        (*i)--;
-        if (interactive)
+    if (c == 'D' && state->i > 0) {
+        state->i--;
+        if (state->interactive)
             write(1, "\033[1D", 4);
     }
-    if (c == 'C' && *i < total_length) {
-        (*i)++;
-        if (interactive)
+    if (c == 'C' && state->i < state->max_len) {
+        state->i++;
+        if (state->interactive)
             write(1, "\033[1C", 4);
     }
     return 1;
 }
 
-static int process_input_char(char *buffer, line_state_t *state, char c)
+static int process_input_char(char *buffer, line_state_t *state, char c,
+    history_t *hist)
 {
     if (handle_backspace(buffer, state, c) == 1
-        || handle_arrows(&state->i, state->max_len, c, state->interactive) == 1)
+        || handle_arrows(buffer, state, c, hist) == 1)
         return 0;
     if (handle_regular_char(buffer, state, c) == 1)
         return 1;
     return 0;
 }
 
-char *my_getline(void)
+char *my_getline(history_t *hist)
 {
     char *buffer = malloc(sizeof(char) * 1024);
     line_state_t state = {0, 0, isatty(0), NULL, NULL};
@@ -160,7 +164,7 @@ char *my_getline(void)
             free(buffer);
             return NULL;
         }
-        if (process_input_char(buffer, &state, c) == 1)
+        if (process_input_char(buffer, &state, c, hist) == 1)
             return buffer;
     }
 }

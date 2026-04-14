@@ -57,7 +57,7 @@ command_t *run_pipe_chain(command_t *curr, char **env, env_t **env_list);
 void free_command_list(command_t *head);
 void enable_raw_mode(struct termios *original_term);
 void disable_raw_mode(struct termios *original_term);
-char *my_getline(void);
+char *my_getline(history_t *hist);
 
 history_t *history_init(int max);
 void history_free(history_t *h);

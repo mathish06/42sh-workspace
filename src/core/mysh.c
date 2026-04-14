@@ -42,7 +42,7 @@ int mysh(char **env)
     while (1) {
         if (isatty(0))
             my_putstr("$> ");
-        line = my_getline();
+        line = my_getline(shell.history);
         if (handle_input(line, &shell, env) == 1)
             break;
         free(line);
