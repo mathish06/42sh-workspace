@@ -9,6 +9,24 @@
 #ifndef STRUC_H_
     #define STRUC_H_
 
+typedef enum token_type_e {
+    TOKEN_WORD,
+    TOKEN_PIPE,
+    TOKEN_SEPARATOR,
+    TOKEN_REDIR_RIGHT,
+    TOKEN_REDIR_DOUBLE_RIGHT,
+    TOKEN_REDIR_LEFT,
+    TOKEN_REDIR_DOUBLE_LEFT,
+    TOKEN_PAREN_LEFT,
+    TOKEN_PAREN_RIGHT
+} token_type_t;
+
+typedef struct token_s {
+    token_type_t type;
+    char *value;
+    struct token_s *next;
+} token_t;
+
 typedef struct env_s {
     char *name;
     char *value;
