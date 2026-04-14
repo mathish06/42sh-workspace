@@ -64,5 +64,7 @@ void history_free(history_t *h);
 void history_add(history_t *h, const char *line);
 void history_nav_up(char *buffer, line_state_t *st, history_t *h);
 void history_nav_down(char *buffer, line_state_t *st, history_t *h);
+history_entry_t *resolve_event(history_t *h, const char *token, int len);
+char *expand_history_events(const char *line, history_t *h);
 
 #endif

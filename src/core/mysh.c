@@ -7,6 +7,24 @@
 #define _GNU_SOURCE
 #include "../../include/my.h"
 
+static command_t *expand_and_build(char *line, mysh_t *shell)
+{
+    char *expanded;
+    command_t *cmd_list;
+
+    expanded = expand_history_events(line, shell->history);
+    if (expanded == NULL)
+        return NULL;
+    if (my_strcmp(expanded, line) != 0) {
+        my_putstr(expanded);
+        my_putstr("\n");
+    }
+    history_add(shell->history, expanded);
+    cmd_list = create_command_list(expanded);
+    free(expanded);
+    return cmd_list;
+}
+
 static int handle_input(char *line, mysh_t *shell, char **env)
 {
     command_t *cmd_list;
@@ -21,8 +39,7 @@ static int handle_input(char *line, mysh_t *shell, char **env)
         return 1;
     }
     if (line[0] != '\0') {
-        history_add(shell->history, line);
-        cmd_list = create_command_list(line);
+        cmd_list = expand_and_build(line, shell);
         if (cmd_list != NULL) {
             exec_command(cmd_list, env, &shell->env);
             free_command_list(cmd_list);

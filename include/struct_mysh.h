@@ -60,6 +60,12 @@ typedef struct line_state_s {
     char *saved_draft;
 } line_state_t;
 
+typedef struct gstr_s {
+    char *buf;
+    int cap;
+    int len;
+} gstr_t;
+
 typedef struct mysh_s {
     env_t *env;
     struct termios original_term;
