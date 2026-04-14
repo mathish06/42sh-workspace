@@ -29,7 +29,8 @@ SRC     =   main.c										\
 			src/history/history.c						\
 			src/history/history_nav.c					\
 			src/history/history_lookup.c				\
-			src/history/expand_history.c
+			src/history/expand_history.c				\
+			src/history/history_io.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
