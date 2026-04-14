@@ -62,5 +62,7 @@ char *my_getline(history_t *hist);
 history_t *history_init(int max);
 void history_free(history_t *h);
 void history_add(history_t *h, const char *line);
+void history_nav_up(char *buffer, line_state_t *st, history_t *h);
+void history_nav_down(char *buffer, line_state_t *st, history_t *h);
 
 #endif

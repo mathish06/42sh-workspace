@@ -114,17 +114,8 @@ static int handle_regular_char(char *buffer, line_state_t *state, char c)
     return 0;
 }
 
-static int handle_arrows(char *buffer, line_state_t *state, char c,
-    history_t *hist)
+static void handle_horizontal_arrow(line_state_t *state, char c)
 {
-    (void)buffer;
-    (void)hist;
-    if (c != 27)
-        return 0;
-    read(0, &c, 1);
-    if (c != '[')
-        return 1;
-    read(0, &c, 1);
     if (c == 'D' && state->i > 0) {
         state->i--;
         if (state->interactive)
@@ -135,6 +126,23 @@ static int handle_arrows(char *buffer, line_state_t *state, char c,
         if (state->interactive)
             write(1, "\033[1C", 4);
     }
+}
+
+static int handle_arrows(char *buffer, line_state_t *state, char c,
+    history_t *hist)
+{
+    if (c != 27)
+        return 0;
+    read(0, &c, 1);
+    if (c != '[')
+        return 1;
+    read(0, &c, 1);
+    if (c == 'A')
+        history_nav_up(buffer, state, hist);
+    if (c == 'B')
+        history_nav_down(buffer, state, hist);
+    if (c == 'C' || c == 'D')
+        handle_horizontal_arrow(state, c);
     return 1;
 }
 
@@ -162,9 +170,12 @@ char *my_getline(history_t *hist)
         txt = read(0, &c, 1);
         if (txt <= 0 || c == 4) {
             free(buffer);
+            free(state.saved_draft);
             return NULL;
         }
-        if (process_input_char(buffer, &state, c, hist) == 1)
+        if (process_input_char(buffer, &state, c, hist) == 1) {
+            free(state.saved_draft);
             return buffer;
+        }
     }
 }
