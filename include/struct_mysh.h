@@ -52,6 +52,14 @@ typedef struct history_s {
     int max;
 } history_t;
 
+typedef struct line_state_s {
+    int i;
+    int max_len;
+    int interactive;
+    history_entry_t *nav_cursor;
+    char *saved_draft;
+} line_state_t;
+
 typedef struct mysh_s {
     env_t *env;
     struct termios original_term;

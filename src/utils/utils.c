@@ -6,12 +6,6 @@
 */
 #include "../../include/my.h"
 
-struct line_state_s {
-    int i;
-    int max_len;
-    int interactive;
-};
-
 char *my_getenv(env_t *env, char *name)
 {
     env_t *curr = env;
@@ -38,7 +32,7 @@ void free_command_list(command_t *head)
     }
 }
 
-static void redraw_after_backspace(char *buffer, struct line_state_s *state)
+static void redraw_after_backspace(char *buffer, line_state_t *state)
 {
     int tmp = 0;
 
@@ -58,7 +52,7 @@ static void redraw_after_backspace(char *buffer, struct line_state_s *state)
     }
 }
 
-static int handle_backspace(char *buffer, struct line_state_s *state, char c)
+static int handle_backspace(char *buffer, line_state_t *state, char c)
 {
     int pos = 0;
 
@@ -77,7 +71,7 @@ static int handle_backspace(char *buffer, struct line_state_s *state, char c)
     return 1;
 }
 
-static void insert_char(char *buffer, struct line_state_s *state, char c)
+static void insert_char(char *buffer, line_state_t *state, char c)
 {
     int pos = state->max_len;
     int tmp = 0;
@@ -99,7 +93,7 @@ static void insert_char(char *buffer, struct line_state_s *state, char c)
     }
 }
 
-static int handle_regular_char(char *buffer, struct line_state_s *state, char c)
+static int handle_regular_char(char *buffer, line_state_t *state, char c)
 {
     if (c == '\n' || c == '\r') {
         if (state->interactive)
@@ -141,7 +135,7 @@ static int handle_arrows(int *i, int total_length, char c, int interactive)
     return 1;
 }
 
-static int process_input_char(char *buffer, struct line_state_s *state, char c)
+static int process_input_char(char *buffer, line_state_t *state, char c)
 {
     if (handle_backspace(buffer, state, c) == 1
         || handle_arrows(&state->i, state->max_len, c, state->interactive) == 1)
@@ -154,7 +148,7 @@ static int process_input_char(char *buffer, struct line_state_s *state, char c)
 char *my_getline(void)
 {
     char *buffer = malloc(sizeof(char) * 1024);
-    struct line_state_s state = {0, 0, isatty(0)};
+    line_state_t state = {0, 0, isatty(0), NULL, NULL};
     char c;
     int txt = 0;
 
