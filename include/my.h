@@ -59,4 +59,8 @@ void enable_raw_mode(struct termios *original_term);
 void disable_raw_mode(struct termios *original_term);
 char *my_getline(void);
 
+history_t *history_init(int max);
+void history_free(history_t *h);
+void history_add(history_t *h, const char *line);
+
 #endif

@@ -39,10 +39,25 @@ typedef struct command_s {
     struct command_s *next;
 } command_t;
 
+typedef struct history_entry_s {
+    char *line;
+    struct history_entry_s *next;
+    struct history_entry_s *prev;
+} history_entry_t;
+
+typedef struct history_s {
+    history_entry_t *head;
+    history_entry_t *tail;
+    int count;
+    int max;
+} history_t;
+
 typedef struct mysh_s {
     env_t *env;
     struct termios original_term;
+    history_t *history;
 } mysh_t;
+
 typedef struct pipe_ctx_s {
     char **env;
     struct env_s *env_list;
