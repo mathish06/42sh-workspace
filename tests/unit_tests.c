@@ -449,3 +449,114 @@ Test(history_store, load_missing_file_noop)
     cr_assert_eq(h->count, 0);
     history_free(h);
 }
+
+Test(history_expand, no_bang_returns_copy)
+{
+    history_t *h = history_init(10);
+    char *out = expand_history_events("echo hello", h);
+
+    cr_assert_not_null(out);
+    cr_assert_str_eq(out, "echo hello");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_bang_last)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "ls -la");
+    out = expand_history_events("!!", h);
+    cr_assert_not_null(out);
+    cr_assert_str_eq(out, "ls -la");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_n_from_head)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "one");
+    history_add(h, "two");
+    history_add(h, "three");
+    out = expand_history_events("!1", h);
+    cr_assert_str_eq(out, "one");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_minus_n_from_tail)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "one");
+    history_add(h, "two");
+    history_add(h, "three");
+    out = expand_history_events("!-2", h);
+    cr_assert_str_eq(out, "two");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_prefix_most_recent)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "echo alpha");
+    history_add(h, "ls");
+    history_add(h, "echo bravo");
+    out = expand_history_events("!ec", h);
+    cr_assert_str_eq(out, "echo bravo");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_not_found_returns_null, .init = redirect_all_std)
+{
+    history_t *h = history_init(10);
+    char *out = expand_history_events("!nope", h);
+
+    cr_assert_null(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_inside_single_quotes_preserved)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "ls");
+    out = expand_history_events("echo '!!'", h);
+    cr_assert_str_eq(out, "echo '!!'");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_escaped_with_backslash_preserved)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "ls");
+    out = expand_history_events("echo \\!!", h);
+    cr_assert_str_eq(out, "echo \\!!");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_concat_with_trailing_text)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "ls -la");
+    out = expand_history_events("!! | cat", h);
+    cr_assert_str_eq(out, "ls -la | cat");
+    free(out);
+    history_free(h);
+}
