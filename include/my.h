@@ -60,5 +60,7 @@ void disable_raw_mode(struct termios *original_term);
 char *my_getline(void);
 token_t *get_next_token(char *line, int *i);
 token_t *lexer(char *line);
+ast_node_t *build_ast(token_t *head);
+char **tokens_to_array(token_t *head);
 
 #endif
