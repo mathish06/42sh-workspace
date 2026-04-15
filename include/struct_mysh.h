@@ -27,6 +27,23 @@ typedef struct token_s {
     struct token_s *next;
 } token_t;
 
+typedef enum ast_node_type_e {
+    NODE_COMMAND,
+    NODE_PIPE,
+    NODE_SEPARATOR,
+    NODE_REDIR_R,
+    NODE_REDIR_RR,
+    NODE_REDIR_L,
+    NODE_REDIR_LL
+} ast_node_type_t;
+
+typedef struct ast_node_s {
+    ast_node_type_t type;
+    char **args;
+    struct ast_node_s *left;
+    struct ast_node_s *right;
+} ast_node_t;
+
 typedef struct env_s {
     char *name;
     char *value;
