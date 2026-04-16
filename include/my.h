@@ -57,6 +57,16 @@ command_t *run_pipe_chain(command_t *curr, char **env, env_t **env_list);
 void free_command_list(command_t *head);
 void enable_raw_mode(struct termios *original_term);
 void disable_raw_mode(struct termios *original_term);
-char *my_getline(void);
+char *my_getline(history_t *hist);
+
+history_t *history_init(int max);
+void history_free(history_t *h);
+void history_add(history_t *h, const char *line);
+void history_load(history_t *h, const char *path);
+void history_save(history_t *h, const char *path);
+void history_nav_up(char *buffer, line_state_t *st, history_t *h);
+void history_nav_down(char *buffer, line_state_t *st, history_t *h);
+history_entry_t *resolve_event(history_t *h, const char *token, int len);
+char *expand_history_events(const char *line, history_t *h);
 
 #endif

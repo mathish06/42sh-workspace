@@ -6,12 +6,6 @@
 */
 #include "../../include/my.h"
 
-struct line_state_s {
-    int i;
-    int max_len;
-    int interactive;
-};
-
 char *my_getenv(env_t *env, char *name)
 {
     env_t *curr = env;
@@ -38,7 +32,7 @@ void free_command_list(command_t *head)
     }
 }
 
-static void redraw_after_backspace(char *buffer, struct line_state_s *state)
+static void redraw_after_backspace(char *buffer, line_state_t *state)
 {
     int tmp = 0;
 
@@ -58,7 +52,7 @@ static void redraw_after_backspace(char *buffer, struct line_state_s *state)
     }
 }
 
-static int handle_backspace(char *buffer, struct line_state_s *state, char c)
+static int handle_backspace(char *buffer, line_state_t *state, char c)
 {
     int pos = 0;
 
@@ -77,7 +71,7 @@ static int handle_backspace(char *buffer, struct line_state_s *state, char c)
     return 1;
 }
 
-static void insert_char(char *buffer, struct line_state_s *state, char c)
+static void insert_char(char *buffer, line_state_t *state, char c)
 {
     int pos = state->max_len;
     int tmp = 0;
@@ -99,7 +93,7 @@ static void insert_char(char *buffer, struct line_state_s *state, char c)
     }
 }
 
-static int handle_regular_char(char *buffer, struct line_state_s *state, char c)
+static int handle_regular_char(char *buffer, line_state_t *state, char c)
 {
     if (c == '\n' || c == '\r') {
         if (state->interactive)
@@ -120,7 +114,22 @@ static int handle_regular_char(char *buffer, struct line_state_s *state, char c)
     return 0;
 }
 
-static int handle_arrows(int *i, int total_length, char c, int interactive)
+static void handle_horizontal_arrow(line_state_t *state, char c)
+{
+    if (c == 'D' && state->i > 0) {
+        state->i--;
+        if (state->interactive)
+            write(1, "\033[1D", 4);
+    }
+    if (c == 'C' && state->i < state->max_len) {
+        state->i++;
+        if (state->interactive)
+            write(1, "\033[1C", 4);
+    }
+}
+
+static int handle_arrows(char *buffer, line_state_t *state, char c,
+    history_t *hist)
 {
     if (c != 27)
         return 0;
@@ -128,33 +137,30 @@ static int handle_arrows(int *i, int total_length, char c, int interactive)
     if (c != '[')
         return 1;
     read(0, &c, 1);
-    if (c == 'D' && *i > 0) {
-        (*i)--;
-        if (interactive)
-            write(1, "\033[1D", 4);
-    }
-    if (c == 'C' && *i < total_length) {
-        (*i)++;
-        if (interactive)
-            write(1, "\033[1C", 4);
-    }
+    if (c == 'A')
+        history_nav_up(buffer, state, hist);
+    if (c == 'B')
+        history_nav_down(buffer, state, hist);
+    if (c == 'C' || c == 'D')
+        handle_horizontal_arrow(state, c);
     return 1;
 }
 
-static int process_input_char(char *buffer, struct line_state_s *state, char c)
+static int process_input_char(char *buffer, line_state_t *state, char c,
+    history_t *hist)
 {
     if (handle_backspace(buffer, state, c) == 1
-        || handle_arrows(&state->i, state->max_len, c, state->interactive) == 1)
+        || handle_arrows(buffer, state, c, hist) == 1)
         return 0;
     if (handle_regular_char(buffer, state, c) == 1)
         return 1;
     return 0;
 }
 
-char *my_getline(void)
+char *my_getline(history_t *hist)
 {
     char *buffer = malloc(sizeof(char) * 1024);
-    struct line_state_s state = {0, 0, isatty(0)};
+    line_state_t state = {0, 0, isatty(0), NULL, NULL};
     char c;
     int txt = 0;
 
@@ -164,9 +170,12 @@ char *my_getline(void)
         txt = read(0, &c, 1);
         if (txt <= 0 || c == 4) {
             free(buffer);
+            free(state.saved_draft);
             return NULL;
         }
-        if (process_input_char(buffer, &state, c) == 1)
+        if (process_input_char(buffer, &state, c, hist) == 1) {
+            free(state.saved_draft);
             return buffer;
+        }
     }
 }

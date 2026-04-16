@@ -357,3 +357,206 @@ Test(redirects, test_redir_right_fail, .exit_code = 1, .init = redirect_all_std)
 
     manage_redirections(&cmd);
 }
+
+Test(history_store, init_empty)
+{
+    history_t *h = history_init(10);
+
+    cr_assert_not_null(h);
+    cr_assert_eq(h->count, 0);
+    cr_assert_null(h->head);
+    cr_assert_null(h->tail);
+    history_free(h);
+}
+
+Test(history_store, add_and_order)
+{
+    history_t *h = history_init(10);
+
+    history_add(h, "first");
+    history_add(h, "second");
+    history_add(h, "third");
+    cr_assert_eq(h->count, 3);
+    cr_assert_str_eq(h->head->line, "first");
+    cr_assert_str_eq(h->tail->line, "third");
+    history_free(h);
+}
+
+Test(history_store, ignore_duplicate_tail)
+{
+    history_t *h = history_init(10);
+
+    history_add(h, "same");
+    history_add(h, "same");
+    history_add(h, "same");
+    cr_assert_eq(h->count, 1);
+    history_free(h);
+}
+
+Test(history_store, ignore_empty_and_null)
+{
+    history_t *h = history_init(10);
+
+    history_add(h, "");
+    history_add(h, NULL);
+    history_add(NULL, "x");
+    cr_assert_eq(h->count, 0);
+    history_free(h);
+}
+
+Test(history_store, cap_at_max)
+{
+    history_t *h = history_init(3);
+    int i = 0;
+    char buf[8];
+
+    while (i < 6) {
+        buf[0] = 'a' + i;
+        buf[1] = '\0';
+        history_add(h, buf);
+        i++;
+    }
+    cr_assert_eq(h->count, 3);
+    cr_assert_str_eq(h->head->line, "d");
+    cr_assert_str_eq(h->tail->line, "f");
+    history_free(h);
+}
+
+Test(history_store, save_and_load_round_trip)
+{
+    history_t *h = history_init(10);
+    history_t *h2;
+    const char *path = "/tmp/.42sh_unit_hist";
+
+    history_add(h, "alpha");
+    history_add(h, "beta gamma");
+    history_save(h, path);
+    h2 = history_init(10);
+    history_load(h2, path);
+    cr_assert_eq(h2->count, 2);
+    cr_assert_str_eq(h2->head->line, "alpha");
+    cr_assert_str_eq(h2->tail->line, "beta gamma");
+    unlink(path);
+    history_free(h);
+    history_free(h2);
+}
+
+Test(history_store, load_missing_file_noop)
+{
+    history_t *h = history_init(10);
+
+    history_load(h, "/tmp/.42sh_does_not_exist_ever_xyz");
+    cr_assert_eq(h->count, 0);
+    history_free(h);
+}
+
+Test(history_expand, no_bang_returns_copy)
+{
+    history_t *h = history_init(10);
+    char *out = expand_history_events("echo hello", h);
+
+    cr_assert_not_null(out);
+    cr_assert_str_eq(out, "echo hello");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_bang_last)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "ls -la");
+    out = expand_history_events("!!", h);
+    cr_assert_not_null(out);
+    cr_assert_str_eq(out, "ls -la");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_n_from_head)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "one");
+    history_add(h, "two");
+    history_add(h, "three");
+    out = expand_history_events("!1", h);
+    cr_assert_str_eq(out, "one");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_minus_n_from_tail)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "one");
+    history_add(h, "two");
+    history_add(h, "three");
+    out = expand_history_events("!-2", h);
+    cr_assert_str_eq(out, "two");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_prefix_most_recent)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "echo alpha");
+    history_add(h, "ls");
+    history_add(h, "echo bravo");
+    out = expand_history_events("!ec", h);
+    cr_assert_str_eq(out, "echo bravo");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_not_found_returns_null, .init = redirect_all_std)
+{
+    history_t *h = history_init(10);
+    char *out = expand_history_events("!nope", h);
+
+    cr_assert_null(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_inside_single_quotes_preserved)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "ls");
+    out = expand_history_events("echo '!!'", h);
+    cr_assert_str_eq(out, "echo '!!'");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_escaped_with_backslash_preserved)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "ls");
+    out = expand_history_events("echo \\!!", h);
+    cr_assert_str_eq(out, "echo \\!!");
+    free(out);
+    history_free(h);
+}
+
+Test(history_expand, bang_concat_with_trailing_text)
+{
+    history_t *h = history_init(10);
+    char *out;
+
+    history_add(h, "ls -la");
+    out = expand_history_events("!! | cat", h);
+    cr_assert_str_eq(out, "ls -la | cat");
+    free(out);
+    history_free(h);
+}
