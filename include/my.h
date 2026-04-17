@@ -34,38 +34,41 @@ char *my_strndup(char const *src, int n);
 
 
 int main(int argc, char **argv, char **env);
+int mysh(char **env);
+
 void free_tab(char **tab);
+char *my_getenv(env_t *env, char *name);
+void print_exec_error(char *cmd);
+char *my_getline(history_t *hist);
+
 env_t *create_node(char *line);
 void add_node_end(env_t **head, char *line);
 env_t *env_to_list(char **env);
-int mysh(char **env);
-char *my_getenv(env_t *env, char *name);
-char *find_command(char *cmd, env_t *env);
 void free_env_list(env_t *head);
+void delete_env_node(env_t **head, char *name);
+
 int my_env(env_t *env);
 int my_setenv(env_t **env, char **args);
-void delete_env_node(env_t **head, char *name);
 int my_unsetenv(env_t **env, char **args);
-void print_exec_error(char *cmd);
 int change_directory(char *path, env_t **env);
 int my_cd(char **args, env_t **env);
-command_t *create_command_list(char *line);
-void free_command_list(command_t *head);
+int handle_builtins(char **args, env_t **env_list);
+
 void enable_raw_mode(struct termios *original_term);
 void disable_raw_mode(struct termios *original_term);
-char *my_getline(void);
+
 token_t *get_next_token(char *line, int *i);
 token_t *lexer(char *line);
 ast_node_t *build_ast(token_t *head);
 char **tokens_to_array(token_t *head);
+void free_tokens(token_t *head);
+
+char *find_command(char *cmd, env_t *env);
 void exec_node_command(ast_node_t *node, char **env, env_t **env_list);
 void exec_ast(ast_node_t *node, char **env, env_t **env_list);
 void exec_pipe_node(ast_node_t *node, char **env, env_t **env_list);
-int handle_builtins(char **args, env_t **env_list);
 void exec_redir_node(ast_node_t *node, char **env, env_t **env_list);
 void free_ast(ast_node_t *node);
-void free_tokens(token_t *head);
-char *my_getline(history_t *hist);
 
 history_t *history_init(int max);
 void history_free(history_t *h);
