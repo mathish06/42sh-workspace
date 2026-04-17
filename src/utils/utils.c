@@ -6,6 +6,19 @@
 */
 #include "../../include/my.h"
 
+void free_tab(char **tab)
+{
+    int i = 0;
+
+    if (tab == NULL)
+        return;
+    while (tab[i] != NULL) {
+        free(tab[i]);
+        i++;
+    }
+    free(tab);
+}
+
 char *my_getenv(env_t *env, char *name)
 {
     env_t *curr = env;
