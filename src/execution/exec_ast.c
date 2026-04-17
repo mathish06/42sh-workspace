@@ -6,52 +6,6 @@
 */
 #include "../../include/my.h"
 
-static int has_slash(char *str)
-{
-    int i = 0;
-
-    while (str[i] != '\0') {
-        if (str[i] == '/')
-            return 1;
-        i++;
-    }
-    return 0;
-}
-
-static char *try_path_composition(char *dir, char *cmd)
-{
-    int len;
-    char *full;
-
-    len = my_strlen(dir) + my_strlen(cmd) + 2;
-    full = malloc(sizeof(char) * len);
-    if (full == NULL)
-        return NULL;
-    my_strcpy(full, dir);
-    my_strcat(full, "/");
-    my_strcat(full, cmd);
-    if (access(full, X_OK) == 0)
-        return full;
-    free(full);
-    return NULL;
-}
-
-static char *search_in_paths(char **path_tab, char *cmd)
-{
-    char *full_path;
-    int i = 0;
-
-    if (path_tab == NULL)
-        return NULL;
-    while (path_tab[i] != NULL) {
-        full_path = try_path_composition(path_tab[i], cmd);
-        if (full_path != NULL)
-            return full_path;
-        i++;
-    }
-    return NULL;
-}
-
 static void check_program_status(int status)
 {
     int sig_no = WTERMSIG(status);
@@ -63,44 +17,6 @@ static void check_program_status(int status)
     if (WCOREDUMP(status))
         my_putstr(" (core dumped)");
     my_putchar('\n');
-}
-
-static int handle_builtins(char **args, env_t **env_list)
-{
-    if (my_strcmp(args[0], "env") == 0) {
-        my_env(*env_list);
-        return 1;
-    }
-    if (my_strcmp(args[0], "setenv") == 0) {
-        my_setenv(env_list, args);
-        return 1;
-    }
-    if (my_strcmp(args[0], "unsetenv") == 0) {
-        my_unsetenv(env_list, args);
-        return 1;
-    }
-    if (my_strcmp(args[0], "cd") == 0) {
-        my_cd(args, env_list);
-        return 1;
-    }
-    return 0;
-}
-
-char *find_command(char *cmd, env_t *env)
-{
-    char *result;
-    char **path_tab;
-    char *full_path;
-
-    if (has_slash(cmd))
-        return my_strdup(cmd);
-    result = my_getenv(env, "PATH");
-    if (result == NULL)
-        return NULL;
-    path_tab = my_str_to_word_array(result, ":");
-    full_path = search_in_paths(path_tab, cmd);
-    free_tab(path_tab);
-    return full_path;
 }
 
 static void run_child_process(char *path, ast_node_t *node, char **env)
