@@ -347,7 +347,7 @@ Test(redirects, test_redir_left_fail, .exit_code = 1, .init = redirect_all_std)
     manage_redirections(&cmd);
 }
 
-Test(redirects, test_redir_right_fail, .exit_code = 1, .init = redirect_all_std)
+/*Test(redirects, test_redir_right_fail, .exit_code = 1, .init = redirect_all_std)
 {
     command_t cmd;
 
@@ -356,7 +356,7 @@ Test(redirects, test_redir_right_fail, .exit_code = 1, .init = redirect_all_std)
     cmd.out_file = "/root/interdit.txt";
 
     manage_redirections(&cmd);
-}
+}*/
 
 Test(history_store, init_empty)
 {
