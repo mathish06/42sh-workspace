@@ -1,0 +1,38 @@
+# --- COMMANDES SIMPLES ---
+ls
+ls -l -a
+pwd
+clear
+
+# --- BUILTINS ET ENVIRONNEMENT ---
+env
+setenv TEST 42 ; env | grep TEST
+setenv A 1 ; setenv B 2 ; unsetenv A ; env | grep A
+cd /tmp ; pwd ; cd - ; pwd
+cd ; pwd
+
+# --- SÉPARATEURS (;) ---
+ls ; pwd ; cd /tmp ; pwd
+ls ; ; pwd
+; ls
+ls ; pwd ;
+
+# --- PIPES (|) ---
+ls -l | grep src
+cat Makefile | grep name | wc -l
+ls | cat -e | cat -e
+ls |
+| ls
+
+# --- REDIRECTIONS (<, >, >>) ---
+echo "hello" > test_out.txt ; cat test_out.txt
+ls -l >> test_out.txt ; wc -l < test_out.txt
+cat < Makefile | grep clean
+ls > out1.txt > out2.txt
+
+# --- ERREURS & CAS LIMITES ---
+commande_inconnue
+ls /dossier_fantome
+cd /root
+/bin/ls -l
+     ls -l

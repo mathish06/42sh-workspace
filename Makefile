@@ -30,6 +30,14 @@ SRC     =   main.c										\
 			src/execution/find_command.c				\
 			src/execution/handle_builtins.c				\
 			src/execution/exec_redir.c
+			src/execution/redirects.c					\
+			src/execution/pipe.c						\
+			src/termios/termios.c						\
+			src/history/history.c						\
+			src/history/history_nav.c					\
+			src/history/history_lookup.c				\
+			src/history/expand_history.c				\
+			src/history/history_io.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
@@ -154,4 +162,4 @@ YELLOW = \033[33m
 
 setup:
 	@git config core.hooksPath .githooks
-	@echo "$(BOLD)$(H_GREEN)✅ Git hooks configurés !$(END)"
+	@echo "$(BOLD)$(H_GREEN) Git hooks configurés !$(END)"

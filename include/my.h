@@ -65,5 +65,16 @@ int handle_builtins(char **args, env_t **env_list);
 void exec_redir_node(ast_node_t *node, char **env, env_t **env_list);
 void free_ast(ast_node_t *node);
 void free_tokens(token_t *head);
+char *my_getline(history_t *hist);
+
+history_t *history_init(int max);
+void history_free(history_t *h);
+void history_add(history_t *h, const char *line);
+void history_load(history_t *h, const char *path);
+void history_save(history_t *h, const char *path);
+void history_nav_up(char *buffer, line_state_t *st, history_t *h);
+void history_nav_down(char *buffer, line_state_t *st, history_t *h);
+history_entry_t *resolve_event(history_t *h, const char *token, int len);
+char *expand_history_events(const char *line, history_t *h);
 
 #endif
