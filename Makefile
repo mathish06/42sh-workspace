@@ -27,7 +27,9 @@ SRC     =   main.c										\
 			src/parsing/lexer.c							\
 			src/parsing/tree.c							\
 			src/execution/exec_ast.c					\
-			src/execution/exec_pipe.c
+			src/execution/exec_pipe.c					\
+			src/execution/find_command.c				\
+			src/execution/handle_builtins.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
