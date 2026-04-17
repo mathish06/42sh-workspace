@@ -34,7 +34,6 @@ char *my_strndup(char const *src, int n);
 
 
 int main(int argc, char **argv, char **env);
-void exec_command(command_t *cmd_list, char **env, env_t **env_list);
 void free_tab(char **tab);
 env_t *create_node(char *line);
 void add_node_end(env_t **head, char *line);
@@ -51,12 +50,21 @@ void print_exec_error(char *cmd);
 int change_directory(char *path, env_t **env);
 int my_cd(char **args, env_t **env);
 command_t *create_command_list(char *line);
-void manage_redirections(command_t *cmd);
-void exec_pipe(command_t *cmd_a, command_t *cmd_b, char **env, env_t *env_list);
-command_t *run_pipe_chain(command_t *curr, char **env, env_t **env_list);
 void free_command_list(command_t *head);
 void enable_raw_mode(struct termios *original_term);
 void disable_raw_mode(struct termios *original_term);
+char *my_getline(void);
+token_t *get_next_token(char *line, int *i);
+token_t *lexer(char *line);
+ast_node_t *build_ast(token_t *head);
+char **tokens_to_array(token_t *head);
+void exec_node_command(ast_node_t *node, char **env, env_t **env_list);
+void exec_ast(ast_node_t *node, char **env, env_t **env_list);
+void exec_pipe_node(ast_node_t *node, char **env, env_t **env_list);
+int handle_builtins(char **args, env_t **env_list);
+void exec_redir_node(ast_node_t *node, char **env, env_t **env_list);
+void free_ast(ast_node_t *node);
+void free_tokens(token_t *head);
 char *my_getline(history_t *hist);
 
 history_t *history_init(int max);
