@@ -24,6 +24,20 @@ static token_t *find_operator(token_t *head, token_type_t type)
     return last_found;
 }
 
+static token_t *find_any_redir(token_t *head)
+{
+    token_t *split = NULL;
+
+    split = find_operator(head, TOKEN_REDIR_RIGHT);
+    if (split == NULL)
+        split = find_operator(head, TOKEN_REDIR_DOUBLE_RIGHT);
+    if (split == NULL)
+        split = find_operator(head, TOKEN_REDIR_LEFT);
+    if (split == NULL)
+        split = find_operator(head, TOKEN_REDIR_DOUBLE_LEFT);
+    return split;
+}
+
 static ast_node_t *create_leaf_node(token_t *head)
 {
     ast_node_t *node = malloc(sizeof(ast_node_t));
@@ -37,6 +51,22 @@ static ast_node_t *create_leaf_node(token_t *head)
     return node;
 }
 
+static void assign_node_type(ast_node_t *node, token_type_t type)
+{
+    if (type == TOKEN_SEPARATOR)
+        node->type = NODE_SEPARATOR;
+    if (type == TOKEN_PIPE)
+        node->type = NODE_PIPE;
+    if (type == TOKEN_REDIR_RIGHT)
+        node->type = NODE_REDIR_R;
+    if (type == TOKEN_REDIR_DOUBLE_RIGHT)
+        node->type = NODE_REDIR_RR;
+    if (type == TOKEN_REDIR_LEFT)
+        node->type = NODE_REDIR_L;
+    if (type == TOKEN_REDIR_DOUBLE_LEFT)
+        node->type = NODE_REDIR_LL;
+}
+
 static ast_node_t *create_operator_node(token_t *head, token_t *split)
 {
     ast_node_t *node = malloc(sizeof(ast_node_t));
@@ -44,10 +74,7 @@ static ast_node_t *create_operator_node(token_t *head, token_t *split)
 
     if (node == NULL)
         return NULL;
-    if (split->type == TOKEN_SEPARATOR)
-        node->type = NODE_SEPARATOR;
-    else
-        node->type = NODE_PIPE;
+    assign_node_type(node, split->type);
     node->args = NULL;
     if (split != head) {
         while (curr->next != split)
@@ -69,6 +96,8 @@ ast_node_t *build_ast(token_t *head)
     split_token = find_operator(head, TOKEN_SEPARATOR);
     if (split_token == NULL)
         split_token = find_operator(head, TOKEN_PIPE);
+    if (split_token == NULL)
+        split_token = find_any_redir(head);
     if (split_token != NULL)
         return create_operator_node(head, split_token);
     return create_leaf_node(head);
