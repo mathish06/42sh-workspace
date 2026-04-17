@@ -22,14 +22,14 @@ SRC     =   main.c										\
 			src/utils/error_handling.c					\
 			src/builtins/my_cd.c						\
 			src/parsing/parsing.c						\
-			src/execution/redirects.c					\
 			src/termios/termios.c						\
 			src/parsing/lexer.c							\
 			src/parsing/tree.c							\
 			src/execution/exec_ast.c					\
 			src/execution/exec_pipe.c					\
 			src/execution/find_command.c				\
-			src/execution/handle_builtins.c
+			src/execution/handle_builtins.c				\
+			src/execution/exec_redir.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
