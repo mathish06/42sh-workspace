@@ -16,10 +16,10 @@ static int handle_input(char *line, char **env, env_t **env_list)
         my_putstr("exit\n");
         return 1;
     }
-    if (line[0] != '\0')
+    if (line[0] == '\0')
         return 0;
     tokens = lexer(line);
-    if (tokens != NULL)
+    if (tokens == NULL)
         return 0;
     ast = build_ast(tokens);
     if (ast != NULL)
