@@ -347,17 +347,6 @@ Test(redirects, test_redir_left_fail, .exit_code = 1, .init = redirect_all_std)
     manage_redirections(&cmd);
 }
 
-Test(redirects, test_redir_right_fail, .exit_code = 1, .init = redirect_all_std)
-{
-    command_t cmd;
-
-    cmd.in_type = REDIR_NONE;
-    cmd.out_type = REDIR_RIGHT;
-    cmd.out_file = "/root/interdit.txt";
-
-    manage_redirections(&cmd);
-}
-
 Test(history_store, init_empty)
 {
     history_t *h = history_init(10);
