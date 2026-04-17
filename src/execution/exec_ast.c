@@ -66,4 +66,7 @@ void exec_ast(ast_node_t *node, char **env, env_t **env_list)
     }
     if (node->type == NODE_PIPE)
         exec_pipe_node(node, env, env_list);
+    if (node->type == NODE_REDIR_R || node->type == NODE_REDIR_RR ||
+        node->type == NODE_REDIR_L || node->type == NODE_REDIR_LL)
+        exec_redir_node(node, env, env_list);
 }
