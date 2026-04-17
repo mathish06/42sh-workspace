@@ -52,7 +52,7 @@ static void fill_haredoc(char *end_world, int write_fd)
     while (1) {
         if (isatty(0))
             my_putstr("? ");
-        line = my_getline();
+        line = my_getline(NULL);
         if (line == NULL)
             break;
         if (my_strcmp(line, end_world) == 0) {
