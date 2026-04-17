@@ -86,9 +86,35 @@ static ast_node_t *create_operator_node(token_t *head, token_t *split)
         node->left = NULL;
     node->right = build_ast(split->next);
     if (split->value != NULL)
-        free_tokens(head);
+        free(split->value);
     free(split);
     return node;
+}
+
+static token_t *strip_parens(token_t *head)
+{
+    token_t *curr = head;
+    token_t *prev = NULL;
+    token_t *new_head;
+
+    if (head == NULL || head->type != TOKEN_PAREN_LEFT)
+        return head;
+    while (curr->next != NULL) {
+        prev = curr;
+        curr = curr->next;
+    }
+    if (curr->type == TOKEN_PAREN_RIGHT) {
+        new_head = head->next;
+        prev->next = NULL;
+        if (head->value)
+            free(head->value);
+        free(head);
+        if (curr->value)
+            free(curr->value);
+        free(curr);
+        return new_head;
+    }
+    return head;
 }
 
 ast_node_t *build_ast(token_t *head)
@@ -104,5 +130,9 @@ ast_node_t *build_ast(token_t *head)
         split_token = find_any_redir(head);
     if (split_token != NULL)
         return create_operator_node(head, split_token);
+    if (head->type == TOKEN_PAREN_LEFT) {
+        head = strip_parens(head);
+        return build_ast(head);
+    }
     return create_leaf_node(head);
 }
