@@ -99,18 +99,14 @@ static token_t *strip_parens(token_t *head)
 
     if (head == NULL || head->type != TOKEN_PAREN_LEFT)
         return head;
-    while (curr->next != NULL) {
+    for (; curr->next != NULL; curr = curr->next)
         prev = curr;
-        curr = curr->next;
-    }
     if (curr->type == TOKEN_PAREN_RIGHT) {
         new_head = head->next;
         prev->next = NULL;
-        if (head->value)
-            free(head->value);
+        free(head->value);
         free(head);
-        if (curr->value)
-            free(curr->value);
+        free(curr->value);
         free(curr);
         return new_head;
     }
