@@ -62,5 +62,6 @@ char **tokens_to_array(token_t *head);
 void exec_node_command(ast_node_t *node, char **env, env_t **env_list);
 void exec_ast(ast_node_t *node, char **env, env_t **env_list);
 void exec_pipe_node(ast_node_t *node, char **env, env_t **env_list);
+int handle_builtins(char **args, env_t **env_list);
 
 #endif
