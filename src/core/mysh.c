@@ -9,23 +9,21 @@
 
 static int handle_input(char *line, char **env, env_t **env_list)
 {
-    command_t *cmd_list;
+    token_t *tokens;
+    ast_node_t *ast;
 
-    if (line == NULL) {
+    if (line == NULL || my_strcmp(line, "exit") == 0) {
         my_putstr("exit\n");
         return 1;
     }
-    if (my_strcmp(line, "exit") == 0) {
-        my_putstr("exit\n");
-        return 1;
-    }
-    if (line[0] != '\0') {
-        cmd_list = create_command_list(line);
-        if (cmd_list != NULL) {
-            exec_command(cmd_list, env, env_list);
-            free_command_list(cmd_list);
-        }
-    }
+    if (line[0] != '\0')
+        return 0;
+    tokens = lexer(line);
+    if (tokens != NULL)
+        return 0;
+    ast = build_ast(tokens);
+    if (ast != NULL)
+        exec_ast(ast, env, env_list);
     return 0;
 }
 
