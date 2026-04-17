@@ -15,7 +15,6 @@ LIB_NAME =  libmy.a
 
 # 2. SOURCES
 SRC     =   main.c										\
-			src/execution/exec_command.c				\
 			src/environment/manage_list.c				\
 			src/core/mysh.c								\
 			src/utils/utils.c							\
@@ -24,10 +23,11 @@ SRC     =   main.c										\
 			src/builtins/my_cd.c						\
 			src/parsing/parsing.c						\
 			src/execution/redirects.c					\
-			src/execution/pipe.c						\
 			src/termios/termios.c						\
 			src/parsing/lexer.c							\
-			src/parsing/tree.c
+			src/parsing/tree.c							\
+			src/execution/exec_ast.c					\
+			src/execution/exec_pipe.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
