@@ -50,7 +50,6 @@ void print_exec_error(char *cmd);
 int change_directory(char *path, env_t **env);
 int my_cd(char **args, env_t **env);
 command_t *create_command_list(char *line);
-void manage_redirections(command_t *cmd);
 void free_command_list(command_t *head);
 void enable_raw_mode(struct termios *original_term);
 void disable_raw_mode(struct termios *original_term);
@@ -63,5 +62,8 @@ void exec_node_command(ast_node_t *node, char **env, env_t **env_list);
 void exec_ast(ast_node_t *node, char **env, env_t **env_list);
 void exec_pipe_node(ast_node_t *node, char **env, env_t **env_list);
 int handle_builtins(char **args, env_t **env_list);
+void exec_redir_node(ast_node_t *node, char **env, env_t **env_list);
+void free_ast(ast_node_t *node);
+void free_tokens(token_t *head);
 
 #endif
