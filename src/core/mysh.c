@@ -50,7 +50,6 @@ static int handle_input(char *line, char **env, env_t **env_list)
         exec_ast(ast, env, env_list);
         free_ast(ast);
     }
-    free_tokens(tokens);
     return 0;
 }
 

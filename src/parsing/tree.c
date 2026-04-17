@@ -48,6 +48,7 @@ static ast_node_t *create_leaf_node(token_t *head)
     node->left = NULL;
     node->right = NULL;
     node->args = tokens_to_array(head);
+    free_tokens(head);
     return node;
 }
 
@@ -84,6 +85,9 @@ static ast_node_t *create_operator_node(token_t *head, token_t *split)
     } else
         node->left = NULL;
     node->right = build_ast(split->next);
+    if (split->value != NULL)
+        free_tokens(head);
+    free(split);
     return node;
 }
 
