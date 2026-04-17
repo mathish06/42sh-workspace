@@ -24,43 +24,52 @@ static token_t *find_operator(token_t *head, token_type_t type)
     return last_found;
 }
 
+static ast_node_t *create_leaf_node(token_t *head)
+{
+    ast_node_t *node = malloc(sizeof(ast_node_t));
+
+    if (node == NULL)
+        return NULL;
+    node->type = NODE_COMMAND;
+    node->left = NULL;
+    node->right = NULL;
+    node->args = tokens_to_array(head);
+    return node;
+}
+
+static ast_node_t *create_operator_node(token_t *head, token_t *split)
+{
+    ast_node_t *node = malloc(sizeof(ast_node_t));
+    token_t *curr = head;
+
+    if (node == NULL)
+        return NULL;
+    if (split->type == TOKEN_SEPARATOR)
+        node->type = NODE_SEPARATOR;
+    else
+        node->type = NODE_PIPE;
+    node->args = NULL;
+    if (split != head) {
+        while (curr->next != split)
+            curr = curr->next;
+        curr->next = NULL;
+        node->left = build_ast(head);
+    } else
+        node->left = NULL;
+    node->right = build_ast(split->next);
+    return node;
+}
+
 ast_node_t *build_ast(token_t *head)
 {
     token_t *split_token = NULL;
-    token_t *curr = head;
-    ast_node_t *node;
 
     if (head == NULL)
         return NULL;
     split_token = find_operator(head, TOKEN_SEPARATOR);
     if (split_token == NULL)
         split_token = find_operator(head, TOKEN_PIPE);
-    if (split_token != NULL) {
-        node = malloc(sizeof(ast_node_t));
-        if (node == NULL)
-            return NULL;
-        if (split_token->type == TOKEN_SEPARATOR)
-            node->type = NODE_SEPARATOR;
-        else
-            node->type = NODE_PIPE;
-        node->args = NULL;
-        if (split_token != head) {
-            for (; curr->next != split_token ;curr = curr->next);
-            curr->next = NULL;
-        }
-        if (split_token == head)
-            node->left = NULL;
-        else
-            node->left = build_ast(head);
-        node->right = build_ast(split_token->next);
-        return node;
-    }
-    node = malloc(sizeof(ast_node_t));
-        if (node == NULL)
-            return NULL;
-    node->type = NODE_COMMAND;
-    node->left = NULL;
-    node->right = NULL;
-    node->args = tokens_to_array(head);
-    return node;
+    if (split_token != NULL)
+        return create_operator_node(head, split_token);
+    return create_leaf_node(head);
 }
