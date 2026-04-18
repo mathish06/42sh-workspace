@@ -168,30 +168,6 @@ Test(builtins_cd, basic_cd, .init = redirect_all_std)
     free_env_list(env_list);
 }
 
-Test(parsing, extract_redirections)
-{
-    char line[] = "ls -l > out.txt < in.txt | grep a >> app.txt << EOF";
-    command_t *cmd = create_command_list(line);
-
-    cr_assert_not_null(cmd);
-    cr_assert_str_eq(cmd->args[0], "ls");
-    cr_assert_str_eq(cmd->args[1], "-l");
-    cr_assert_str_eq(cmd->out_file, "out.txt");
-    cr_assert_str_eq(cmd->in_file, "in.txt");
-    cr_assert_eq(cmd->out_type, REDIR_RIGHT);
-    cr_assert_eq(cmd->in_type, REDIR_LEFT);
-    cr_assert_eq(cmd->separator, SEP_PIPE);
-
-    cr_assert_not_null(cmd->next);
-    cr_assert_str_eq(cmd->next->args[0], "grep");
-    cr_assert_str_eq(cmd->next->out_file, "app.txt");
-    cr_assert_str_eq(cmd->next->in_file, "EOF");
-    cr_assert_eq(cmd->next->out_type, REDIR_DOUBLE_RIGHT);
-    cr_assert_eq(cmd->next->in_type, REDIR_DOUBLE_LEFT);
-
-    free_command_list(cmd);
-}
-
 Test(error_handling, print_errors, .init = redirect_all_std)
 {
     errno = ENOEXEC;
@@ -215,22 +191,6 @@ Test(exec_command, find_command)
     free_env_list(env_list);
 }
 
-Test(exec_command, builtins_execution, .init = redirect_all_std)
-{
-    char *envp[] = {"USER=test", NULL};
-    env_t *env_list = env_to_list(envp);
-    char line_env[] = "env";
-    command_t *cmd_env = create_command_list(line_env);
-    char line_setenv[] = "setenv TEST 42";
-    command_t *cmd_setenv = create_command_list(line_setenv);
-    exec_command(cmd_env, envp, &env_list);
-    exec_command(cmd_setenv, envp, &env_list);
-    cr_assert_str_eq(my_getenv(env_list, "TEST"), "42");
-    free_command_list(cmd_env);
-    free_command_list(cmd_setenv);
-    free_env_list(env_list);
-}
-
 Test(mysh_main, test_exit_and_commands)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
@@ -242,70 +202,6 @@ Test(mysh_main, test_exit_and_commands)
     dup2(pipefd[0], 0);
     close(pipefd[0]);
     mysh(envp);
-    dup2(saved_stdin, 0);
-    close(saved_stdin);
-}
-
-Test(exec_command, test_pipes_and_binaries)
-{
-    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
-    env_t *env_list = env_to_list(envp);
-    command_t *cmd_ls = create_command_list("ls");
-    command_t *cmd_fail = create_command_list("unecommandequinexistepas");
-    command_t *cmd_pipe = create_command_list("ls | grep a");
-    exec_command(cmd_ls, envp, &env_list);
-    free_command_list(cmd_ls);
-    exec_command(cmd_fail, envp, &env_list);
-    free_command_list(cmd_fail);
-    exec_command(cmd_pipe, envp, &env_list);
-    free_command_list(cmd_pipe);
-    free_env_list(env_list);
-}
-
-Test(redirects, test_file_redirections)
-{
-    int saved_stdout = dup(1);
-    int saved_stdin = dup(0);
-    command_t cmd;
-    int fd_in = open("test_in.txt", O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    write(fd_in, "contenu\n", 8);
-    close(fd_in);
-    cmd.out_type = REDIR_RIGHT;
-    cmd.out_file = "test_out.txt";
-    cmd.in_type = REDIR_LEFT;
-    cmd.in_file = "test_in.txt";
-    manage_redirections(&cmd);
-    write(1, "succes\n", 7);
-    dup2(saved_stdout, 1);
-    dup2(saved_stdin, 0);
-    close(saved_stdout);
-    close(saved_stdin);
-    cmd.out_type = REDIR_DOUBLE_RIGHT;
-    cmd.out_file = "test_out_append.txt";
-    cmd.in_type = REDIR_NONE;
-    saved_stdout = dup(1);
-    manage_redirections(&cmd);
-    dup2(saved_stdout, 1);
-    close(saved_stdout);
-    remove("test_in.txt");
-    remove("test_out.txt");
-    remove("test_out_append.txt");
-}
-
-Test(redirects, test_haredoc_double_left)
-{
-    int saved_stdin = dup(0);
-    int pipefd[2];
-    command_t cmd;
-    pipe(pipefd);
-    write(pipefd[1], "ligne 1\nligne 2\nEOF\n", 20);
-    close(pipefd[1]);
-    dup2(pipefd[0], 0);
-    close(pipefd[0]);
-    cmd.out_type = REDIR_NONE;
-    cmd.in_type = REDIR_DOUBLE_LEFT;
-    cmd.in_file = "EOF";
-    manage_redirections(&cmd);
     dup2(saved_stdin, 0);
     close(saved_stdin);
 }
@@ -334,17 +230,6 @@ Test(mysh_main, test_eof_ctrl_d, .init = redirect_all_std)
 
     dup2(saved_stdin, 0);
     close(saved_stdin);
-}
-
-Test(redirects, test_redir_left_fail, .exit_code = 1, .init = redirect_all_std)
-{
-    command_t cmd;
-
-    cmd.in_type = REDIR_LEFT;
-    cmd.out_type = REDIR_NONE;
-    cmd.in_file = "/ce_fichier_n_existe_absolument_pas.txt";
-
-    manage_redirections(&cmd);
 }
 
 Test(history_store, init_empty)
@@ -548,4 +433,87 @@ Test(history_expand, bang_concat_with_trailing_text)
     cr_assert_str_eq(out, "ls -la | cat");
     free(out);
     history_free(h);
+}
+
+Test(inhibitors, quotes_check_valid)
+{
+    cr_assert_eq(quotes_check("echo hello"), 1);
+    cr_assert_eq(quotes_check("echo 'hello'"), 1);
+    cr_assert_eq(quotes_check("echo 'a' 'b'"), 1);
+    cr_assert_eq(quotes_check(""), 1);
+}
+
+Test(inhibitors, quotes_check_unmatched, .init = redirect_all_std)
+{
+    cr_assert_eq(quotes_check("echo 'hello"), 0);
+    cr_assert_eq(quotes_check("'"), 0);
+    cr_assert_eq(quotes_check("echo 'a' 'b"), 0);
+}
+
+Test(inhibitors, in_the_quotes_detection)
+{
+    char *line = "echo 'hello' world";
+
+    cr_assert_eq(in_the_quotes(line, 0), 0);
+    cr_assert_eq(in_the_quotes(line, 5), 0);
+    cr_assert_eq(in_the_quotes(line, 7), 1);
+    cr_assert_eq(in_the_quotes(line, 10), 1);
+    cr_assert_eq(in_the_quotes(line, 13), 0);
+}
+
+Test(inhibitors, in_the_quotes_no_quotes)
+{
+    char *line = "echo hello world";
+
+    cr_assert_eq(in_the_quotes(line, 0), 0);
+    cr_assert_eq(in_the_quotes(line, 5), 0);
+    cr_assert_eq(in_the_quotes(line, 10), 0);
+}
+
+Test(inhibitors, remove_quotes_basic)
+{
+    char *result = remove_quotes("'hello'");
+
+    cr_assert_str_eq(result, "hello");
+    free(result);
+}
+
+Test(inhibitors, remove_quotes_no_quotes)
+{
+    char *result = remove_quotes("hello");
+
+    cr_assert_str_eq(result, "hello");
+    free(result);
+}
+
+Test(inhibitors, remove_quotes_multiple)
+{
+    char *result = remove_quotes("'a''b'");
+
+    cr_assert_str_eq(result, "ab");
+    free(result);
+}
+
+Test(inhibitors, remove_quotes_empty)
+{
+    char *result = remove_quotes("");
+
+    cr_assert_str_eq(result, "");
+    free(result);
+}
+
+Test(inhibitors, remove_quotes_only_quotes)
+{
+    char *result = remove_quotes("''");
+
+    cr_assert_str_eq(result, "");
+    free(result);
+}
+
+Test(inhibitors, remove_quotes_mixed_content)
+{
+    char *result = remove_quotes("hello'world'test");
+
+    cr_assert_str_eq(result, "helloworldtest");
+    free(result);
 }

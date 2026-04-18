@@ -4,6 +4,7 @@
 ** File description:
 ** lexer for the 42sh
 */
+
 #include "../../include/my.h"
 
 static token_t *create_token(token_type_t type, char *value)
@@ -25,17 +26,23 @@ static int is_operator(char c)
     return 0;
 }
 
+static token_t *handle_right_redir(char *line, int *i)
+{
+    if (line[*i + 1] == '>') {
+        (*i) += 2;
+        return create_token(TOKEN_REDIR_DOUBLE_RIGHT, NULL);
+    } else {
+        (*i)++;
+        return create_token(TOKEN_REDIR_RIGHT, NULL);
+    }
+}
+
 static token_t *handle_redirections(char *line, int *i)
 {
-    if (line[*i] == '>') {
-        if (line[*i + 1] == '>') {
-            (*i) += 2;
-            return create_token(TOKEN_REDIR_DOUBLE_RIGHT, NULL);
-        } else {
-            (*i)++;
-            return create_token(TOKEN_REDIR_RIGHT, NULL);
-        }
-    }
+    if (in_the_quotes(line, *i))
+        return NULL;
+    if (line[*i] == '>')
+        return handle_right_redir(line, i);
     if (line[*i] == '<') {
         if (line[*i + 1] == '<') {
             (*i) += 2;
@@ -50,6 +57,8 @@ static token_t *handle_redirections(char *line, int *i)
 
 static token_t *handle_basic_operators(char *line, int *i)
 {
+    if (in_the_quotes(line, *i))
+        return NULL;
     if (line[*i] == '|') {
         (*i)++;
         return create_token(TOKEN_PIPE, NULL);
@@ -69,9 +78,25 @@ static token_t *handle_basic_operators(char *line, int *i)
     return NULL;
 }
 
-token_t *get_next_token(char *line, int *i)
+static token_t *create_word_token(char *line, int *i)
 {
     int start;
+    char *raw_word;
+    char *clean_word;
+
+    start = (*i);
+    while (line[*i] != '\0' && (in_the_quotes(line, *i) ||
+            (line[*i] != ' ' && line[*i] != '\t' &&
+                is_operator(line[*i]) == 0)))
+        (*i)++;
+    raw_word = my_strndup(&line[start], *i - start);
+    clean_word = remove_quotes(raw_word);
+    free(raw_word);
+    return create_token(TOKEN_WORD, clean_word);
+}
+
+token_t *get_next_token(char *line, int *i)
+{
     token_t *token;
 
     while (line[*i] == ' ' || line[*i] == '\t')
@@ -84,10 +109,7 @@ token_t *get_next_token(char *line, int *i)
     token = handle_basic_operators(line, i);
     if (token != NULL)
         return token;
-    start = (*i);
-    for (; line[*i] != ' ' && line[*i] != '\t' && line[*i] != '\0'
-        && is_operator(line[*i]) == 0; (*i)++);
-    return create_token(TOKEN_WORD, my_strndup(&line[start], *i - start));
+    return create_word_token(line, i);
 }
 
 token_t *lexer(char *line)

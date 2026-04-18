@@ -62,6 +62,9 @@ token_t *lexer(char *line);
 ast_node_t *build_ast(token_t *head);
 char **tokens_to_array(token_t *head);
 void free_tokens(token_t *head);
+int quotes_check(char *line);
+int in_the_quotes(char *line, int pos);
+char *remove_quotes(char *word);
 
 char *find_command(char *cmd, env_t *env);
 void exec_node_command(ast_node_t *node, char **env, env_t **env_list);

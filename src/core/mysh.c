@@ -66,9 +66,12 @@ static char *prepare_line(char *line, mysh_t *shell)
 
 static int process_ast(char *expanded, mysh_t *shell, char **env)
 {
-    token_t *tokens = lexer(expanded);
+    token_t *tokens;
     ast_node_t *ast;
 
+    if (quotes_check(expanded) == 0)
+        return 0;
+    tokens = lexer(expanded);
     if (tokens == NULL)
         return 0;
     ast = build_ast(tokens);

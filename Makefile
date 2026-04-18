@@ -24,6 +24,7 @@ SRC     =   main.c										\
 			src/parsing/parsing.c						\
 			src/parsing/lexer.c							\
 			src/parsing/tree.c							\
+			src/parsing/inhibitors.c					\
 			src/execution/exec_ast.c					\
 			src/execution/exec_pipe.c					\
 			src/execution/find_command.c				\
