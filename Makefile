@@ -122,10 +122,10 @@ re: fclean all
 # ─── Tests Rules ─────────────────────────────────────────────────────────
 tests_run: fclean $(LIB_NAME)
 	$(call pretty_header, 🧪 Compiling and running unit tests 🧪)
-	@$(CC) -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
+	@gcc -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
 	@./unit_tests
-	@gcovr --exclude tests/ --gcov-executable "llvm-cov gcov"
-	@gcovr --branches --exclude tests/ --gcov-executable "llvm-cov gcov"
+	@gcovr --exclude tests/
+	@gcovr --txt-metric branch --exclude tests/
 
 coverage: tests_run
 	@gcovr --html-details -o coverage.html --exclude tests/

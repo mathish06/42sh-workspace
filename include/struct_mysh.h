@@ -47,6 +47,7 @@ typedef struct ast_node_s {
 typedef struct env_s {
     char *name;
     char *value;
+    int is_exported;
     struct env_s *next;
 } env_t;
 
@@ -111,12 +112,5 @@ typedef struct pipe_ctx_s {
     char **env;
     struct env_s *env_list;
 } pipe_ctx_t;
-
-typedef struct env_s {
-    char *name;
-    char *value;
-    int is_exported;
-    struct env_s *next;
-} env_t;
 
 #endif

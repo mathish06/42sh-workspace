@@ -54,6 +54,9 @@ int my_unsetenv(env_t **env, char **args);
 int change_directory(char *path, env_t **env);
 int my_cd(char **args, env_t **env);
 int handle_builtins(char **args, env_t **env_list);
+int my_set(env_t **env, char **args);
+int my_unset(env_t **env, char **args);
+char **env_list_to_tab(env_t *head);
 
 void enable_raw_mode(struct termios *original_term);
 void disable_raw_mode(struct termios *original_term);
