@@ -57,10 +57,13 @@ int my_env(env_t *env)
     env_t *curr = env;
 
     while (curr != NULL) {
-        my_putstr(curr->name);
-        my_putchar('=');
-        my_putstr(curr->value);
-        my_putchar('\n');
+        if (curr->is_exported == 1) {
+            my_putstr(curr->name);
+            my_putchar('=');
+            if (curr->value != NULL)
+                my_putstr(curr->value);
+            my_putchar('\n');
+        }
         curr = curr->next;
     }
     return 0;
