@@ -40,6 +40,7 @@ void free_tab(char **tab);
 char *my_getenv(env_t *env, char *name);
 void print_exec_error(char *cmd);
 char *my_getline(history_t *hist);
+char **env_list_to_tab(env_t *head);
 
 env_t *create_node(char *line);
 void add_node_end(env_t **head, char *line);
