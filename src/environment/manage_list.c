@@ -22,6 +22,7 @@ env_t *create_node(char *line)
         node->value = my_strdup(&line[i + 1]);
     else
         node->value = NULL;
+    node->is_exported = 1; 
     node->next = NULL;
     return node;
 }
