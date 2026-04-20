@@ -24,5 +24,13 @@ int handle_builtins(char **args, env_t **env_list)
         my_cd(args, env_list);
         return 1;
     }
+    if (my_strcmp(args[0], "set") == 0) {
+        my_set(env_list, args);
+        return 1;
+    }
+    if (my_strcmp(args[0], "unset") == 0) {
+        my_unset(env_list, args);
+        return 1;
+    }
     return 0;
 }
