@@ -55,3 +55,21 @@ static void scan_dir(DIR *d, comp_list_t *l, comp_ctx_t *ctx, int cap)
     }
     l->entries[l->count] = NULL;
 }
+
+comp_list_t *collect_entries(comp_ctx_t *ctx)
+{
+    DIR *d = opendir(ctx->dir);
+    comp_list_t *l;
+    int cap = 256;
+
+    if (d == NULL)
+        return NULL;
+    l = alloc_comp_list(cap);
+    if (l == NULL) {
+        closedir(d);
+        return NULL;
+    }
+    scan_dir(d, l, ctx, cap);
+    closedir(d);
+    return l;
+}
