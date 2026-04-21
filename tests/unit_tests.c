@@ -1,9 +1,3 @@
-/*
-** EPITECH PROJECT, 2026
-** Untitled (Workspace)
-** File description:
-** unit_tests.c
-*/
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
 #include <unistd.h>
@@ -116,56 +110,70 @@ Test(builtins_env, my_env, .init = redirect_all_std)
 {
     char *envp[] = {"USER=loan", NULL};
     env_t *env_list = env_to_list(envp);
-    my_env(env_list);
+    mysh_t shell;
+
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_env(&shell);
     cr_assert_stdout_eq_str("USER=loan\n");
-    free_env_list(env_list);
+    free_env_list(shell.env);
 }
 
 Test(builtins_setenv, basic_setenv, .init = redirect_all_std)
 {
     char *envp[] = {"USER=loan", NULL};
     env_t *env_list = env_to_list(envp);
+    mysh_t shell;
     char *args[] = {"setenv", "TEST", "value", NULL};
     char *args_err[] = {"setenv", "T-EST", "value", NULL};
     char *args_many[] = {"setenv", "1", "2", "3", NULL};
     char *args_none[] = {"setenv", NULL};
-    my_setenv(&env_list, args);
-    cr_assert_str_eq(my_getenv(env_list, "TEST"), "value");
-    my_setenv(&env_list, args_err);
-    my_setenv(&env_list, args_many);
-    my_setenv(&env_list, args_none);
-    free_env_list(env_list);
+
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_setenv(&shell, args);
+    cr_assert_str_eq(my_getenv(shell.env, "TEST"), "value");
+    my_setenv(&shell, args_err);
+    my_setenv(&shell, args_many);
+    my_setenv(&shell, args_none);
+    free_env_list(shell.env);
 }
 
 Test(builtins_unsetenv, basic_unsetenv, .init = redirect_all_std)
 {
     char *envp[] = {"USER=loan", "TEST=value", NULL};
     env_t *env_list = env_to_list(envp);
+    mysh_t shell;
     char *args[] = {"unsetenv", "TEST", NULL};
     char *args_err[] = {"unsetenv", NULL};
-    my_unsetenv(&env_list, args);
-    cr_assert_null(my_getenv(env_list, "TEST"));
-    my_unsetenv(&env_list, args_err);
-    free_env_list(env_list);
+
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_unsetenv(&shell, args);
+    cr_assert_null(my_getenv(shell.env, "TEST"));
+    my_unsetenv(&shell, args_err);
+    free_env_list(shell.env);
 }
 
 Test(builtins_cd, basic_cd, .init = redirect_all_std)
 {
     char *envp[] = {"HOME=/tmp", "OLDPWD=/tmp", NULL};
     env_t *env_list = env_to_list(envp);
+    mysh_t shell;
     char *args_tmp[] = {"cd", "/tmp", NULL};
     char *args_home[] = {"cd", NULL};
     char *args_dash[] = {"cd", "-", NULL};
     char *args_many[] = {"cd", "1", "2", NULL};
     char *args_err[] = {"cd", "/impossible_directory_42", NULL};
 
-    cr_assert_eq(my_cd(args_tmp, &env_list), 0);
-    cr_assert_eq(my_cd(args_home, &env_list), 0);
-    cr_assert_eq(my_cd(args_dash, &env_list), 0);
-    cr_assert_eq(my_cd(args_many, &env_list), 1);
-    cr_assert_eq(my_cd(args_err, &env_list), 1);
-
-    free_env_list(env_list);
+    shell.env = env_list;
+    shell.alias = NULL;
+    cr_assert_eq(my_cd(args_tmp, &shell), 0);
+    cr_assert_eq(my_cd(args_home, &shell), 0);
+    cr_assert_eq(my_cd(args_dash, &shell), 0);
+    cr_assert_eq(my_cd(args_many, &shell), 1);
+    cr_assert_eq(my_cd(args_err, &shell), 1);
+    free_env_list(shell.env);
 }
 
 Test(error_handling, print_errors, .init = redirect_all_std)
@@ -182,13 +190,19 @@ Test(exec_command, find_command)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     env_t *env_list = env_to_list(envp);
-    char *path = find_command("ls", env_list);
-    char *abs_path = find_command("/bin/ls", env_list);
+    mysh_t shell;
+    char *path;
+    char *abs_path;
+
+    shell.env = env_list;
+    shell.alias = NULL;
+    path = find_command("ls", &shell);
+    abs_path = find_command("/bin/ls", &shell);
     cr_assert_not_null(path);
     free(path);
     cr_assert_str_eq(abs_path, "/bin/ls");
     free(abs_path);
-    free_env_list(env_list);
+    free_env_list(shell.env);
 }
 
 Test(mysh_main, test_exit_and_commands)
@@ -196,6 +210,7 @@ Test(mysh_main, test_exit_and_commands)
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     int saved_stdin = dup(0);
     int pipefd[2];
+
     pipe(pipefd);
     write(pipefd[1], "ls\necho hello\nexit\n", 19);
     close(pipefd[1]);
@@ -225,9 +240,7 @@ Test(mysh_main, test_eof_ctrl_d, .init = redirect_all_std)
     close(pipefd[1]);
     dup2(pipefd[0], 0);
     close(pipefd[0]);
-
     mysh(envp);
-
     dup2(saved_stdin, 0);
     close(saved_stdin);
 }
@@ -522,39 +535,42 @@ Test(builtins_set, basic_set_and_unset, .init = redirect_all_std)
 {
     char *envp[] = {"USER=loan", NULL};
     env_t *env_list = env_to_list(envp);
-    env_t *curr = env_list;
+    mysh_t shell;
+    env_t *curr;
     char *args_set[] = {"set", "LOCAL_VAR", "42", NULL};
     char *args_unset[] = {"unset", "LOCAL_VAR", NULL};
 
-    my_set(&env_list, args_set);
-    cr_assert_str_eq(my_getenv(env_list, "LOCAL_VAR"), "42");
-
-    while (my_strcmp(curr->name, "LOCAL_VAR") != 0)
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_set(&shell, args_set);
+    cr_assert_str_eq(my_getenv(shell.env, "LOCAL_VAR"), "42");
+    curr = shell.env;
+    while (curr != NULL && my_strcmp(curr->name, "LOCAL_VAR") != 0)
         curr = curr->next;
+    cr_assert_not_null(curr);
     cr_assert_eq(curr->is_exported, 0);
-
-    my_unset(&env_list, args_unset);
-    cr_assert_null(my_getenv(env_list, "LOCAL_VAR"));
-
-    free_env_list(env_list);
+    my_unset(&shell, args_unset);
+    cr_assert_null(my_getenv(shell.env, "LOCAL_VAR"));
+    free_env_list(shell.env);
 }
 
 Test(utils, env_list_to_tab)
 {
     char *envp[] = {"GLOBAL1=val1", NULL};
     env_t *env_list = env_to_list(envp);
+    mysh_t shell;
     char **env_tab;
     char *args_set[] = {"set", "LOCAL1", "val2", NULL};
 
-    my_set(&env_list, args_set);
-
-    env_tab = env_list_to_tab(env_list);
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_set(&shell, args_set);
+    env_tab = env_list_to_tab(shell.env);
     cr_assert_not_null(env_tab);
     cr_assert_str_eq(env_tab[0], "GLOBAL1=val1");
     cr_assert_null(env_tab[1]);
-
     free_tab(env_tab);
-    free_env_list(env_list);
+    free_env_list(shell.env);
 }
 
 Test(alias_list, add_and_find_basic)
@@ -564,11 +580,9 @@ Test(alias_list, add_and_find_basic)
 
     add_alias(&list, "ll", "ls -l");
     target = find_alias(list, "ll");
-
-    cr_assert_not_null(target, "L'alias 'll' devrait être trouvé.");
-    cr_assert_str_eq(target->name, "ll", "Le nom devrait être 'll'.");
-    cr_assert_str_eq(target->value, "ls -l", "La valeur devrait être 'ls -l'.");
-
+    cr_assert_not_null(target);
+    cr_assert_str_eq(target->name, "ll");
+    cr_assert_str_eq(target->value, "ls -l");
     free_alias_list(list);
 }
 
@@ -580,10 +594,8 @@ Test(alias_list, overwrite_existing_alias)
     add_alias(&list, "ll", "ls -l");
     add_alias(&list, "ll", "ls -la --color");
     target = find_alias(list, "ll");
-
-    cr_assert_not_null(target, "L'alias 'll' devrait toujours exister.");
-    cr_assert_str_eq(target->value, "ls -la --color", "La valeur de l'alias aurait dû être mise à jour.");
-
+    cr_assert_not_null(target);
+    cr_assert_str_eq(target->value, "ls -la --color");
     free_alias_list(list);
 }
 
@@ -594,9 +606,7 @@ Test(alias_list, find_non_existent)
 
     add_alias(&list, "ll", "ls -l");
     target = find_alias(list, "mdr");
-
-    cr_assert_null(target, "La recherche d'un alias inexistant devrait renvoyer NULL.");
-
+    cr_assert_null(target);
     free_alias_list(list);
 }
 
@@ -606,30 +616,25 @@ Test(alias_list, delete_alias)
 
     add_alias(&list, "ll", "ls -l");
     add_alias(&list, "grep", "grep --color");
-    
     delete_alias(&list, "ll");
-    cr_assert_null(find_alias(list, "ll"), "L'alias 'll' devrait être supprimé.");
-    cr_assert_not_null(find_alias(list, "grep"), "L'alias 'grep' devrait toujours être là.");
-
+    cr_assert_null(find_alias(list, "ll"));
+    cr_assert_not_null(find_alias(list, "grep"));
     delete_alias(&list, "grep");
-    cr_assert_null(list, "La liste devrait être vide après avoir tout supprimé.");
-
+    cr_assert_null(list);
     delete_alias(&list, "fantome");
-
     free_alias_list(list);
 }
 
 Test(builtin_alias, my_alias_creation)
 {
     mysh_t shell;
-    shell.alias = NULL;
     char *args[] = {"alias", "ll", "ls", "-l", "--color=auto", NULL};
+    alias_t *target;
 
+    shell.alias = NULL;
     my_alias(&shell, args);
-    
-    alias_t *target = find_alias(shell.alias, "ll");
-    cr_assert_not_null(target, "Le builtin devrait avoir créé l'alias.");
-    cr_assert_str_eq(target->value, "ls -l --color=auto", "La concaténation des arguments a échoué.");
-
+    target = find_alias(shell.alias, "ll");
+    cr_assert_not_null(target);
+    cr_assert_str_eq(target->value, "ls -l --color=auto");
     free_alias_list(shell.alias);
 }
