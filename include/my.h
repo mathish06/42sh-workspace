@@ -87,4 +87,9 @@ void history_nav_down(char *buffer, line_state_t *st, history_t *h);
 history_entry_t *resolve_event(history_t *h, const char *token, int len);
 char *expand_history_events(const char *line, history_t *h);
 
+void free_alias_list(alias_t *head);
+alias_t *find_alias(alias_t *head, char *alias_name);
+void add_alias(alias_t **head ,char *alias_name, char *alias_value);
+void delete_alias(alias_t **head, char *alias_name);
+
 #endif
