@@ -42,6 +42,7 @@ void exec_node_command(ast_node_t *node, char **env, env_t **env_list)
 {
     char *cmd_path = NULL;
 
+    (void) env;
     if (node == NULL || node->args == NULL || node->args[0] == NULL)
         return;
     if (handle_builtins(node->args, env_list) == 1)
@@ -52,7 +53,7 @@ void exec_node_command(ast_node_t *node, char **env, env_t **env_list)
         my_putstr(": Command not found.\n");
         return;
     }
-    run_child_process(cmd_path, node, env_list); 
+    run_child_process(cmd_path, node, env_list);
     free(cmd_path);
 }
 
