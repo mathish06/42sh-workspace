@@ -15,6 +15,10 @@
 #include "./struct_mysh.h"
 #include <fcntl.h>
 #include <termios.h>
+#include <sys/ioctl.h>
+#include <dirent.h>
+#include <sys/stat.h>
+
 
 #ifndef MY_H
     #define MY_H
@@ -82,5 +86,33 @@ void history_nav_up(char *buffer, line_state_t *st, history_t *h);
 void history_nav_down(char *buffer, line_state_t *st, history_t *h);
 history_entry_t *resolve_event(history_t *h, const char *token, int len);
 char *expand_history_events(const char *line, history_t *h);
+
+int handle_tab(char *buffer, line_state_t *st);
+void get_word_bounds(char *buffer, int i, int *start, int *end);
+comp_ctx_t *build_ctx(char *buffer, line_state_t *st);
+void free_ctx(comp_ctx_t *ctx);
+comp_list_t *collect_entries(comp_ctx_t *ctx);
+void free_comp_list(comp_list_t *list);
+char *common_prefix(comp_list_t *list);
+void insert_completion(line_ctx_t *lc, comp_ctx_t *ctx,
+    const char *text, int is_dir);
+int show_menu(line_ctx_t *lc, comp_ctx_t *ctx, comp_list_t *list);
+int single_match(line_ctx_t *lc, comp_ctx_t *ctx, comp_list_t *list);
+int extend_prefix(line_ctx_t *lc, comp_ctx_t *ctx, comp_list_t *list);
+int run_menu_loop(line_ctx_t *lc, comp_ctx_t *ctx, comp_list_t *list);
+int get_term_cols(void);
+int max_entry_len(comp_list_t *list);
+int is_directory(const char *dir, const char *name);
+void redraw_prompt_line(char *buffer, line_state_t *st);
+void compute_grid(comp_list_t *list, menu_state_t *m);
+void draw_menu(comp_list_t *list, menu_state_t *m, int selected);
+void clear_menu(menu_state_t *m);
+int menu_navigate(comp_list_t *list, menu_state_t *m);
+comp_list_t *alloc_comp_list(int cap);
+int starts_with(const char *str, const char *pre);
+int is_first_word(char *buffer, int word_start);
+int already_in(comp_list_t *l, const char *name);
+comp_list_t *collect_path_commands(const char *prefix);
+int try_path_completion(line_ctx_t *lc, comp_ctx_t *ctx);
 
 #endif
