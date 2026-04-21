@@ -37,6 +37,7 @@ SRC     =   main.c										\
 			src/utils/utils.c							\
 			src/utils/error_handling.c					\
 			src/termios/termios.c						\
+			src/alias/alias_tools.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
