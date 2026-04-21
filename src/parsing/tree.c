@@ -99,18 +99,30 @@ static token_t *strip_parens(token_t *head)
 
     if (head == NULL || head->type != TOKEN_PAREN_LEFT)
         return head;
-    for (; curr->next != NULL; curr = curr->next)
+    while (curr->next != NULL) {
         prev = curr;
-    if (curr->type == TOKEN_PAREN_RIGHT) {
-        new_head = head->next;
-        prev->next = NULL;
-        free(head->value);
-        free(head);
-        free(curr->value);
-        free(curr);
-        return new_head;
+        curr = curr->next;
     }
-    return head;
+    if (prev == NULL || curr->type != TOKEN_PAREN_RIGHT)
+        return head;
+    new_head = head->next;
+    prev->next = NULL;
+    free(curr->value);
+    free(curr);
+    free(head->value);
+    free(head);
+    return new_head;
+}
+
+static token_t *find_split_token(token_t *head)
+{
+    token_t *split = find_operator(head, TOKEN_SEPARATOR);
+
+    if (split == NULL)
+        split = find_operator(head, TOKEN_PIPE);
+    if (split == NULL)
+        split = find_any_redir(head);
+    return split;
 }
 
 ast_node_t *build_ast(token_t *head)
@@ -119,11 +131,7 @@ ast_node_t *build_ast(token_t *head)
 
     if (head == NULL)
         return NULL;
-    split_token = find_operator(head, TOKEN_SEPARATOR);
-    if (split_token == NULL)
-        split_token = find_operator(head, TOKEN_PIPE);
-    if (split_token == NULL)
-        split_token = find_any_redir(head);
+    split_token = find_split_token(head);
     if (split_token != NULL)
         return create_operator_node(head, split_token);
     if (head->type == TOKEN_PAREN_LEFT) {
