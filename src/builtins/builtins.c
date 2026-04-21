@@ -52,18 +52,23 @@ static char *create_env_string(char *key, char *value)
     return full;
 }
 
+static void print_single_env(env_t *curr)
+{
+    if (curr->is_exported == 0)
+        return;
+    my_putstr(curr->name);
+    my_putchar('=');
+    if (curr->value != NULL)
+        my_putstr(curr->value);
+    my_putchar('\n');
+}
+
 int my_env(env_t *env)
 {
     env_t *curr = env;
 
     while (curr != NULL) {
-        if (curr->is_exported == 1) {
-            my_putstr(curr->name);
-            my_putchar('=');
-            if (curr->value != NULL)
-                my_putstr(curr->value);
-            my_putchar('\n');
-        }
+        print_single_env(curr);
         curr = curr->next;
     }
     return 0;
