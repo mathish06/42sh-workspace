@@ -24,3 +24,21 @@ static void push_entry(comp_list_t *l, const char *dir, const char *name)
     l->is_dir[l->count] = is_directory(dir, name);
     l->count++;
 }
+
+comp_list_t *alloc_comp_list(int cap)
+{
+    comp_list_t *l = malloc(sizeof(comp_list_t));
+
+    if (l == NULL)
+        return NULL;
+    l->entries = malloc(sizeof(char *) * (cap + 1));
+    l->is_dir = malloc(sizeof(int) * (cap + 1));
+    l->count = 0;
+    if (l->entries == NULL || l->is_dir == NULL) {
+        free(l->entries);
+        free(l->is_dir);
+        free(l);
+        return NULL;
+    }
+    return l;
+}
