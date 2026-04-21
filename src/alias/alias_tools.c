@@ -33,3 +33,22 @@ alias_t *find_alias(alias_t *head, char *alias_name)
     }
     return NULL;
 }
+
+void add_alias(alias_t **head ,char *alias_name, char *alias_value)
+{
+    alias_t *target = find_alias(*head, alias_name);
+    alias_t *new_node;
+
+    if (target != NULL) {
+        free(target->value);
+        target->value = my_strdup(alias_value);
+        return;
+    }
+    new_node = malloc(sizeof(alias_t));
+    if (new_node == NULL)
+        return;
+    new_node->name = my_strdup(alias_name);
+    new_node->value = my_strdup(alias_value);
+    new_node->next = *head;
+    *head = new_node;
+}
