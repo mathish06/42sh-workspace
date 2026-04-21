@@ -63,9 +63,9 @@ static void print_single_env(env_t *curr)
     my_putchar('\n');
 }
 
-int my_env(env_t *env)
+int my_env(mysh_t *shell)
 {
-    env_t *curr = env;
+    env_t *curr = shell->env;
 
     while (curr != NULL) {
         print_single_env(curr);
@@ -74,24 +74,24 @@ int my_env(env_t *env)
     return 0;
 }
 
-static int add_var_to_env(env_t **env, char *key, char *value)
+static int add_var_to_env(mysh_t *shell, char *key, char *value)
 {
     char *full = create_env_string(key, value);
 
     if (full == NULL)
         return 84;
-    delete_env_node(env, key);
-    add_node_end(env, full);
+    delete_env_node((&shell->env), key);
+    add_node_end((&shell->env), full);
     free(full);
     return 0;
 }
 
-int my_setenv(env_t **env, char **args)
+int my_setenv(mysh_t *shell, char **args)
 {
     int nb_args = count_args(args);
 
     if (nb_args == 1) {
-        my_env(*env);
+        my_env(shell);
         return 0;
     }
     if (nb_args > 3) {
@@ -103,10 +103,10 @@ int my_setenv(env_t **env, char **args)
             " alphanumeric characters.\n");
         return 1;
     }
-    return add_var_to_env(env, args[1], args[2]);
+    return add_var_to_env(shell, args[1], args[2]);
 }
 
-int my_unsetenv(env_t **env, char **args)
+int my_unsetenv(mysh_t *shell, char **args)
 {
     int i = 1;
 
@@ -115,7 +115,7 @@ int my_unsetenv(env_t **env, char **args)
         return 1;
     }
     while (args[i] != NULL) {
-        delete_env_node(env, args[i]);
+        delete_env_node(&(shell->env), args[i]);
         i++;
     }
     return 0;
