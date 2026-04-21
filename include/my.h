@@ -48,14 +48,14 @@ env_t *env_to_list(char **env);
 void free_env_list(env_t *head);
 void delete_env_node(env_t **head, char *name);
 
-int my_env(env_t *env);
-int my_setenv(env_t **env, char **args);
-int my_unsetenv(env_t **env, char **args);
-int change_directory(char *path, env_t **env);
-int my_cd(char **args, env_t **env);
-int handle_builtins(char **args, env_t **env_list);
-int my_set(env_t **env, char **args);
-int my_unset(env_t **env, char **args);
+int my_env(mysh_t *shell);
+int my_setenv(mysh_t *shell, char **args);
+int my_unsetenv(mysh_t *shell, char **args);
+int change_directory(char *path, mysh_t *shell);
+int my_cd(char **args, mysh_t *shell);
+int handle_builtins(char **args, mysh_t *shell);
+int my_set(mysh_t *shell, char **args);
+int my_unset(mysh_t *shell, char **args);
 char **env_list_to_tab(env_t *head);
 
 void enable_raw_mode(struct termios *original_term);
@@ -70,11 +70,11 @@ int quotes_check(char *line);
 int in_the_quotes(char *line, int pos);
 char *remove_quotes(char *word);
 
-char *find_command(char *cmd, env_t *env);
-void exec_node_command(ast_node_t *node, char **env, env_t **env_list);
-void exec_ast(ast_node_t *node, char **env, env_t **env_list);
-void exec_pipe_node(ast_node_t *node, char **env, env_t **env_list);
-void exec_redir_node(ast_node_t *node, char **env, env_t **env_list);
+char *find_command(char *cmd, mysh_t *shell);
+void exec_node_command(ast_node_t *node, char **env, mysh_t *shell);
+void exec_ast(ast_node_t *node, char **env, mysh_t *shell);
+void exec_pipe_node(ast_node_t *node, char **env, mysh_t *shell);
+void exec_redir_node(ast_node_t *node, char **env, mysh_t *shell);
 void free_ast(ast_node_t *node);
 
 history_t *history_init(int max);
@@ -91,5 +91,7 @@ void free_alias_list(alias_t *head);
 alias_t *find_alias(alias_t *head, char *alias_name);
 void add_alias(alias_t **head, char *alias_name, char *alias_value);
 void delete_alias(alias_t **head, char *alias_name);
+int my_alias(mysh_t *shell, char **args);
+int my_unalias(mysh_t *shell, char **args);
 
 #endif
