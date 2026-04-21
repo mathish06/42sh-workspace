@@ -556,3 +556,80 @@ Test(utils, env_list_to_tab)
     free_tab(env_tab);
     free_env_list(env_list);
 }
+
+Test(alias_list, add_and_find_basic)
+{
+    alias_t *list = NULL;
+    alias_t *target = NULL;
+
+    add_alias(&list, "ll", "ls -l");
+    target = find_alias(list, "ll");
+
+    cr_assert_not_null(target, "L'alias 'll' devrait être trouvé.");
+    cr_assert_str_eq(target->name, "ll", "Le nom devrait être 'll'.");
+    cr_assert_str_eq(target->value, "ls -l", "La valeur devrait être 'ls -l'.");
+
+    free_alias_list(list);
+}
+
+Test(alias_list, overwrite_existing_alias)
+{
+    alias_t *list = NULL;
+    alias_t *target = NULL;
+
+    add_alias(&list, "ll", "ls -l");
+    add_alias(&list, "ll", "ls -la --color");
+    target = find_alias(list, "ll");
+
+    cr_assert_not_null(target, "L'alias 'll' devrait toujours exister.");
+    cr_assert_str_eq(target->value, "ls -la --color", "La valeur de l'alias aurait dû être mise à jour.");
+
+    free_alias_list(list);
+}
+
+Test(alias_list, find_non_existent)
+{
+    alias_t *list = NULL;
+    alias_t *target = NULL;
+
+    add_alias(&list, "ll", "ls -l");
+    target = find_alias(list, "mdr");
+
+    cr_assert_null(target, "La recherche d'un alias inexistant devrait renvoyer NULL.");
+
+    free_alias_list(list);
+}
+
+Test(alias_list, delete_alias)
+{
+    alias_t *list = NULL;
+
+    add_alias(&list, "ll", "ls -l");
+    add_alias(&list, "grep", "grep --color");
+    
+    delete_alias(&list, "ll");
+    cr_assert_null(find_alias(list, "ll"), "L'alias 'll' devrait être supprimé.");
+    cr_assert_not_null(find_alias(list, "grep"), "L'alias 'grep' devrait toujours être là.");
+
+    delete_alias(&list, "grep");
+    cr_assert_null(list, "La liste devrait être vide après avoir tout supprimé.");
+
+    delete_alias(&list, "fantome");
+
+    free_alias_list(list);
+}
+
+Test(builtin_alias, my_alias_creation)
+{
+    mysh_t shell;
+    shell.alias = NULL;
+    char *args[] = {"alias", "ll", "ls", "-l", "--color=auto", NULL};
+
+    my_alias(&shell, args);
+    
+    alias_t *target = find_alias(shell.alias, "ll");
+    cr_assert_not_null(target, "Le builtin devrait avoir créé l'alias.");
+    cr_assert_str_eq(target->value, "ls -l --color=auto", "La concaténation des arguments a échoué.");
+
+    free_alias_list(shell.alias);
+}
