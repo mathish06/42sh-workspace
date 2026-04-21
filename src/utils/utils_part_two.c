@@ -31,20 +31,6 @@ char *my_getenv(env_t *env, char *name)
     return NULL;
 }
 
-void free_command_list(command_t *head)
-{
-    command_t *tmp;
-
-    while (head != NULL) {
-        tmp = head->next;
-        free_tab(head->args);
-        free(head->in_file);
-        free(head->out_file);
-        free(head);
-        head = tmp;
-    }
-}
-
 char **tokens_to_array(token_t *head)
 {
     int count = 0;

@@ -76,7 +76,7 @@ static int process_ast(char *expanded, mysh_t *shell, char **env)
         return 0;
     ast = build_ast(tokens);
     if (ast != NULL) {
-        exec_ast(ast, env, &shell->env);
+        exec_ast(ast, env, shell);
         free_ast(ast);
     }
     return 0;

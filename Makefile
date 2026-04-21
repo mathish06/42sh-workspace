@@ -20,7 +20,6 @@ SRC     =   main.c										\
 			src/builtins/builtins.c						\
 			src/builtins/my_cd.c						\
 			src/builtins/my_set.c						\
-			src/parsing/parsing.c						\
 			src/parsing/lexer.c							\
 			src/parsing/tree.c							\
 			src/parsing/inhibitors.c					\
@@ -38,6 +37,9 @@ SRC     =   main.c										\
 			src/utils/utils.c							\
 			src/utils/error_handling.c					\
 			src/termios/termios.c						\
+			src/alias/alias_tools.c						\
+			src/builtins/my_alias.c						\
+			src/builtins/my_unalias.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
