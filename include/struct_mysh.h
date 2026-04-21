@@ -118,6 +118,13 @@ typedef struct comp_list_s {
     int count;
 } comp_list_t;
 
+typedef struct comp_ctx_s {
+    char *dir;
+    char *prefix;
+    int word_start;
+    int word_end;
+} comp_ctx_t;
+
     #define LINE_BUF_CAP 1024
 
 #endif

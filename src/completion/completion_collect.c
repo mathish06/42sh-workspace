@@ -42,3 +42,16 @@ comp_list_t *alloc_comp_list(int cap)
     }
     return l;
 }
+
+static void scan_dir(DIR *d, comp_list_t *l, comp_ctx_t *ctx, int cap)
+{
+    struct dirent *e = readdir(d);
+
+    while (e != NULL && l->count < cap) {
+        if (!(e->d_name[0] == '.' && ctx->prefix[0] != '.')
+            && starts_with(e->d_name, ctx->prefix))
+            push_entry(l, ctx->dir, e->d_name);
+        e = readdir(d);
+    }
+    l->entries[l->count] = NULL;
+}
