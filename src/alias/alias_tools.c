@@ -52,3 +52,30 @@ void add_alias(alias_t **head ,char *alias_name, char *alias_value)
     new_node->next = *head;
     *head = new_node;
 }
+
+static void remove_alias_node(alias_t **head, alias_t *prev, alias_t *curr)
+{
+    if (prev == NULL)
+        *head = curr->next;
+    else
+        prev->next = curr->next;
+    free(curr->name);
+    if (curr->value != NULL)
+        free(curr->value);
+    free(curr);
+}
+
+void delete_alias(alias_t **head, char *alias_name)
+{
+    alias_t *curr = *head;
+    alias_t *prev = NULL;
+
+    while (curr != NULL) {
+        if (my_strcmp(curr->name, alias_name) == 0) {
+            remove_alias_node(head, prev, curr);
+            return;
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+}
