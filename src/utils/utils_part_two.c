@@ -69,6 +69,7 @@ char **tokens_to_array(token_t *head)
 static int count_exported(env_t *head)
 {
     int count = 0;
+
     for (env_t *curr = head; curr != NULL; curr = curr->next) {
         if (curr->is_exported == 1)
             count++;
@@ -83,17 +84,17 @@ char **env_list_to_tab(env_t *head)
     int len;
 
     for (env_t *curr = head; curr != NULL; curr = curr->next) {
-        if (curr->is_exported == 1) {
-            len = my_strlen(curr->name) + 2;
-            if (curr->value != NULL)
-                len += my_strlen(curr->value);
-            new_env[i] = malloc(sizeof(char) * len);
-            my_strcpy(new_env[i], curr->name);
-            my_strcat(new_env[i], "=");
-            if (curr->value != NULL)
-                my_strcat(new_env[i], curr->value);
-            i++;
-        }
+        if (curr->is_exported != 1)
+            continue;
+        len = my_strlen(curr->name) + 2;
+        if (curr->value != NULL)
+            len += my_strlen(curr->value);
+        new_env[i] = malloc(sizeof(char) * len);
+        my_strcpy(new_env[i], curr->name);
+        my_strcat(new_env[i], "=");
+        if (curr->value != NULL)
+            my_strcat(new_env[i], curr->value);
+        i++;
     }
     new_env[i] = NULL;
     return new_env;
