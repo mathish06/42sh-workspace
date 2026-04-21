@@ -56,3 +56,19 @@ static int all_match_at(comp_list_t *list, int k, char c)
     }
     return 1;
 }
+
+char *common_prefix(comp_list_t *list)
+{
+    int k = 0;
+    char c;
+
+    if (list->count == 0)
+        return my_strdup("");
+    while (list->entries[0][k] != '\0') {
+        c = list->entries[0][k];
+        if (!all_match_at(list, k, c))
+            return my_strndup(list->entries[0], k);
+        k++;
+    }
+    return my_strndup(list->entries[0], k);
+}
