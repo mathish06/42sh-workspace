@@ -78,10 +78,17 @@ typedef struct gstr_s {
     int len;
 } gstr_t;
 
+typedef struct alias_s {
+    char *name;
+    char *value;
+    struct alias_s *next;
+} alias_t;
+
 typedef struct mysh_s {
     env_t *env;
     struct termios original_term;
     history_t *history;
+    alias_t *alias;
 } mysh_t;
 
 #endif
