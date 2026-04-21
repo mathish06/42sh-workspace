@@ -19,3 +19,11 @@ void get_word_bounds(char *buffer, int i, int *start, int *end)
     *end = e;
 }
 
+int get_term_cols(void)
+{
+    struct winsize ws;
+
+    if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0)
+        return 80;
+    return ws.ws_col;
+}
