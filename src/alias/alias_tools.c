@@ -34,7 +34,7 @@ alias_t *find_alias(alias_t *head, char *alias_name)
     return NULL;
 }
 
-void add_alias(alias_t **head ,char *alias_name, char *alias_value)
+void add_alias(alias_t **head, char *alias_name, char *alias_value)
 {
     alias_t *target = find_alias(*head, alias_name);
     alias_t *new_node;
