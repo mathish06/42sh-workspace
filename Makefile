@@ -17,10 +17,9 @@ LIB_NAME =  libmy.a
 SRC     =   main.c										\
 			src/environment/manage_list.c				\
 			src/core/mysh.c								\
-			src/utils/utils.c							\
 			src/builtins/builtins.c						\
-			src/utils/error_handling.c					\
 			src/builtins/my_cd.c						\
+			src/builtins/my_set.c						\
 			src/parsing/parsing.c						\
 			src/parsing/lexer.c							\
 			src/parsing/tree.c							\
@@ -30,13 +29,15 @@ SRC     =   main.c										\
 			src/execution/find_command.c				\
 			src/execution/handle_builtins.c				\
 			src/execution/exec_redir.c					\
-			src/termios/termios.c						\
 			src/history/history.c						\
 			src/history/history_nav.c					\
 			src/history/history_lookup.c				\
 			src/history/expand_history.c				\
 			src/history/history_io.c					\
-			src/utils/utils_part_two.c
+			src/utils/utils_part_two.c					\
+			src/utils/utils.c							\
+			src/utils/error_handling.c					\
+			src/termios/termios.c						\
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
@@ -121,10 +122,10 @@ re: fclean all
 # ─── Tests Rules ─────────────────────────────────────────────────────────
 tests_run: fclean $(LIB_NAME)
 	$(call pretty_header, 🧪 Compiling and running unit tests 🧪)
-	@$(CC) -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
+	@gcc -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
 	@./unit_tests
-	@gcovr --exclude tests/ --gcov-executable "llvm-cov gcov"
-	@gcovr --branches --exclude tests/ --gcov-executable "llvm-cov gcov"
+	@gcovr --exclude tests/
+	@gcovr --txt-metric branch --exclude tests/
 
 coverage: tests_run
 	@gcovr --html-details -o coverage.html --exclude tests/

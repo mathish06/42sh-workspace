@@ -40,6 +40,7 @@ void free_tab(char **tab);
 char *my_getenv(env_t *env, char *name);
 void print_exec_error(char *cmd);
 char *my_getline(history_t *hist);
+char **env_list_to_tab(env_t *head);
 
 env_t *create_node(char *line);
 void add_node_end(env_t **head, char *line);
@@ -53,6 +54,9 @@ int my_unsetenv(env_t **env, char **args);
 int change_directory(char *path, env_t **env);
 int my_cd(char **args, env_t **env);
 int handle_builtins(char **args, env_t **env_list);
+int my_set(env_t **env, char **args);
+int my_unset(env_t **env, char **args);
+char **env_list_to_tab(env_t *head);
 
 void enable_raw_mode(struct termios *original_term);
 void disable_raw_mode(struct termios *original_term);

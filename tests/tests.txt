@@ -36,3 +36,8 @@ ls /dossier_fantome
 cd /root
 /bin/ls -l
      ls -l
+     
+# --- VARIABLES LOCALES ---
+set
+set MAVAR = 42 ; set | grep MAVAR
+set MAVAR = 42 ; unset MAVAR ; set | grep MAVAR

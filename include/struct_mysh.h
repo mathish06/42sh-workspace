@@ -47,6 +47,7 @@ typedef struct ast_node_s {
 typedef struct env_s {
     char *name;
     char *value;
+    int is_exported;
     struct env_s *next;
 } env_t;
 

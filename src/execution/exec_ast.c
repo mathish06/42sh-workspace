@@ -19,14 +19,16 @@ static void check_program_status(int status)
     my_putchar('\n');
 }
 
-static void run_child_process(char *path, ast_node_t *node, char **env)
+static void run_child_process(char *path, ast_node_t *node, env_t **env_list)
 {
     pid_t pid;
     int status;
+    char **env_array;
 
     pid = fork();
     if (pid == 0) {
-        execve(path, node->args, env);
+        env_array = env_list_to_tab(*env_list);
+        execve(path, node->args, env_array);
         print_exec_error(path);
         exit(1);
     } else {
@@ -40,6 +42,7 @@ void exec_node_command(ast_node_t *node, char **env, env_t **env_list)
 {
     char *cmd_path = NULL;
 
+    (void) env;
     if (node == NULL || node->args == NULL || node->args[0] == NULL)
         return;
     if (handle_builtins(node->args, env_list) == 1)
@@ -50,7 +53,7 @@ void exec_node_command(ast_node_t *node, char **env, env_t **env_list)
         my_putstr(": Command not found.\n");
         return;
     }
-    run_child_process(cmd_path, node, env);
+    run_child_process(cmd_path, node, env_list);
     free(cmd_path);
 }
 
