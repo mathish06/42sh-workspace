@@ -112,4 +112,12 @@ typedef struct pipe_ctx_s {
     struct env_s *env_list;
 } pipe_ctx_t;
 
+typedef struct comp_list_s {
+    char **entries;
+    int *is_dir;
+    int count;
+} comp_list_t;
+
+    #define LINE_BUF_CAP 1024
+
 #endif
