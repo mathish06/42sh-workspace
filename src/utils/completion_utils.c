@@ -44,3 +44,15 @@ int max_entry_len(comp_list_t *list)
     }
     return max;
 }
+
+static int all_match_at(comp_list_t *list, int k, char c)
+{
+    int i = 1;
+
+    while (i < list->count) {
+        if (list->entries[i][k] != c)
+            return 0;
+        i++;
+    }
+    return 1;
+}
