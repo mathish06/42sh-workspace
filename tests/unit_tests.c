@@ -517,3 +517,42 @@ Test(inhibitors, remove_quotes_mixed_content)
     cr_assert_str_eq(result, "helloworldtest");
     free(result);
 }
+
+Test(builtins_set, basic_set_and_unset, .init = redirect_all_std)
+{
+    char *envp[] = {"USER=loan", NULL};
+    env_t *env_list = env_to_list(envp);
+    env_t *curr = env_list;
+    char *args_set[] = {"set", "LOCAL_VAR", "42", NULL};
+    char *args_unset[] = {"unset", "LOCAL_VAR", NULL};
+
+    my_set(&env_list, args_set);
+    cr_assert_str_eq(my_getenv(env_list, "LOCAL_VAR"), "42");
+
+    while (my_strcmp(curr->name, "LOCAL_VAR") != 0)
+        curr = curr->next;
+    cr_assert_eq(curr->is_exported, 0);
+
+    my_unset(&env_list, args_unset);
+    cr_assert_null(my_getenv(env_list, "LOCAL_VAR"));
+
+    free_env_list(env_list);
+}
+
+Test(utils, env_list_to_tab)
+{
+    char *envp[] = {"GLOBAL1=val1", NULL};
+    env_t *env_list = env_to_list(envp);
+    char **env_tab;
+    char *args_set[] = {"set", "LOCAL1", "val2", NULL};
+
+    my_set(&env_list, args_set);
+
+    env_tab = env_list_to_tab(env_list);
+    cr_assert_not_null(env_tab);
+    cr_assert_str_eq(env_tab[0], "GLOBAL1=val1");
+    cr_assert_null(env_tab[1]);
+
+    free_tab(env_tab);
+    free_env_list(env_list);
+}
