@@ -27,3 +27,20 @@ int get_term_cols(void)
         return 80;
     return ws.ws_col;
 }
+
+int max_entry_len(comp_list_t *list)
+{
+    int max = 0;
+    int len;
+    int i = 0;
+
+    while (i < list->count) {
+        len = my_strlen(list->entries[i]);
+        if (list->is_dir[i])
+            len++;
+        if (len > max)
+            max = len;
+        i++;
+    }
+    return max;
+}
