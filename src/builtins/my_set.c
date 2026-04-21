@@ -27,15 +27,31 @@ static void display_all_env(env_t *env)
     }
 }
 
-static void set_node_as_local(env_t *head)
+static void force_local_flag(env_t **env, char *key)
 {
-    env_t *curr = head;
+    env_t *curr = *env;
 
-    if (curr == NULL)
-        return;
-    while (curr->next != NULL)
+    while (curr != NULL) {
+        if (my_strcmp(curr->name, key) == 0) {
+            curr->is_exported = 0;
+            return;
+        }
         curr = curr->next;
-    curr->is_exported = 0;
+    }
+}
+
+static void parse_and_set(env_t **env, char **args)
+{
+    char *val = NULL;
+    char *fake_args[4] = {"setenv", args[1], NULL, NULL};
+
+    if (args[2] != NULL && my_strcmp(args[2], "=") == 0)
+        val = args[3];
+    else if (args[2] != NULL)
+        val = args[2];
+    fake_args[2] = val;
+    if (my_setenv(env, fake_args) == 0)
+        force_local_flag(env, args[1]);
 }
 
 int my_set(env_t **env, char **args)
@@ -44,8 +60,6 @@ int my_set(env_t **env, char **args)
         display_all_env(*env);
         return 0;
     }
-    if (my_setenv(env, args) == 0) {
-        set_node_as_local(*env);
-    }
+    parse_and_set(env, args);
     return 0;
 }
