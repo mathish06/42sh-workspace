@@ -20,7 +20,6 @@ SRC     =   main.c										\
 			src/builtins/builtins.c						\
 			src/builtins/my_cd.c						\
 			src/builtins/my_set.c						\
-			src/parsing/parsing.c						\
 			src/parsing/lexer.c							\
 			src/parsing/tree.c							\
 			src/parsing/inhibitors.c					\
