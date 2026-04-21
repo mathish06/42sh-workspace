@@ -21,3 +21,15 @@ void free_alias_list(alias_t *head)
         curr = next_node;
     }
 }
+
+alias_t *find_alias(alias_t *head, char *alias_name)
+{
+    alias_t *curr = head;
+
+    while (curr != NULL) {
+        if (my_strcmp(curr->name, alias_name) == 0)
+            return curr;
+        curr = curr->next;
+    }
+    return NULL;
+}
