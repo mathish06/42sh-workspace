@@ -24,3 +24,12 @@ int extend_prefix(line_ctx_t *lc, comp_ctx_t *ctx, comp_list_t *l)
     free(cp);
     return extended;
 }
+
+int show_menu(line_ctx_t *lc, comp_ctx_t *ctx, comp_list_t *l)
+{
+    if (l->count == 1)
+        return single_match(lc, ctx, l);
+    if (extend_prefix(lc, ctx, l) == 1)
+        return 0;
+    return run_menu_loop(lc, ctx, l);
+}

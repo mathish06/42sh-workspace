@@ -125,6 +125,20 @@ typedef struct comp_ctx_s {
     int word_end;
 } comp_ctx_t;
 
+typedef struct menu_state_s {
+    int selected;
+    int cols;
+    int rows;
+    int col_width;
+    int term_cols;
+    int printed_rows;
+} menu_state_t;
+
+typedef struct line_ctx_s {
+    char *buffer;
+    line_state_t *st;
+} line_ctx_t;
+
     #define LINE_BUF_CAP 1024
 
 #endif
