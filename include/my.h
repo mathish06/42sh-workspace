@@ -94,5 +94,6 @@ void delete_alias(alias_t **head, char *alias_name);
 int my_alias(mysh_t *shell, char **args);
 int my_unalias(mysh_t *shell, char **args);
 char **replace_args_with_alias(char **old_args, char **alias_args);
+void expand_aliases(ast_node_t *node, mysh_t *shell);
 
 #endif
