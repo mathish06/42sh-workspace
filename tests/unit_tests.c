@@ -955,3 +955,93 @@ Test(exec_redir, redir_errors, .init = redirect_all_std)
     cr_assert(1);
     free_env_list(shell.env);
 }
+
+Test(history_nav, up_empty_history)
+{
+    history_t *h = history_init(10);
+    line_state_t st = {0};
+    char buffer[256] = {0};
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_null(st.nav_cursor);
+    cr_assert_str_eq(buffer, "");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_null(st.nav_cursor);
+
+    history_free(h);
+}
+
+Test(history_nav, basic_up_and_down)
+{
+    history_t *h = history_init(10);
+    history_add(h, "cmd1");
+    history_add(h, "cmd2");
+    
+    line_state_t st = {0};
+    char buffer[256] = {0};
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_not_null(st.nav_cursor);
+    cr_assert_str_eq(buffer, "cmd2");
+    cr_assert_eq(st.i, 4);
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_str_eq(buffer, "cmd1");
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_str_eq(buffer, "cmd1");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_str_eq(buffer, "cmd2");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_null(st.nav_cursor);
+    cr_assert_str_eq(buffer, "");
+
+    history_free(h);
+    if (st.saved_draft != NULL)
+        free(st.saved_draft);
+}
+
+Test(history_nav, save_and_restore_draft)
+{
+    history_t *h = history_init(10);
+    history_add(h, "old_command");
+    
+    line_state_t st = {0};
+    char buffer[256] = "echo un_brouillon_non_fini";
+    st.max_len = 26;
+    st.i = 26;
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_str_eq(buffer, "old_command");
+    cr_assert_not_null(st.saved_draft);
+    cr_assert_str_eq(st.saved_draft, "echo un_brouillon_non_fini");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_str_eq(buffer, "echo un_brouillon_non_fini");
+    cr_assert_null(st.nav_cursor);
+
+    history_free(h);
+    if (st.saved_draft != NULL)
+        free(st.saved_draft);
+}
+
+Test(history_nav, interactive_redraw, .init = redirect_all_std)
+{
+    history_t *h = history_init(10);
+    history_add(h, "ls -la");
+    
+    line_state_t st = {0};
+    st.interactive = 1;
+    char buffer[256] = {0};
+
+    history_nav_up(buffer, &st, h);
+
+    cr_assert_stdout_eq_str("\r\033[K$> ls -la");
+
+    history_free(h);
+    if (st.saved_draft != NULL)
+        free(st.saved_draft);
+}
