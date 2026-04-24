@@ -41,3 +41,33 @@ char **replace_args_with_alias(char **old_args, char **alias_args)
     free_tab(alias_args);
     return full;
 }
+
+static void process_alias_loop(ast_node_t *node, mysh_t *shell)
+{
+    char **alias_args;
+    alias_t *target = NULL;
+
+    for (int loop = 0; loop < 20; loop++) {
+        if (node->args[0] == NULL)
+            break;
+        target = find_alias(shell->alias, node->args[0]);
+        if (target == NULL)
+            break;
+        alias_args = my_str_to_word_array(target->value, " \t");
+        if (alias_args == NULL)
+            break;
+        if (alias_args[0] != NULL &&
+            my_strcmp(alias_args[0], node->args[0]) == 0) {
+            node->args = replace_args_with_alias(node->args, alias_args);
+            break;
+        }
+        node->args = replace_args_with_alias(node->args, alias_args);
+    }
+}
+
+void expand_aliases(ast_node_t *node, mysh_t *shell)
+{
+    if (node == NULL || node->args == NULL || node->args[0] == NULL)
+        return;
+    process_alias_loop(node, shell);
+}
