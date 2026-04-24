@@ -638,3 +638,128 @@ Test(builtin_alias, my_alias_creation)
     cr_assert_str_eq(target->value, "ls -l --color=auto");
     free_alias_list(shell.alias);
 }
+
+Test(builtin_unalias, my_unalias_basic)
+{
+    mysh_t shell;
+    shell.alias = NULL;
+    char *args[] = {"unalias", "ll", NULL};
+
+    add_alias(&shell.alias, "ll", "ls -l");
+    add_alias(&shell.alias, "grep", "grep --color");
+
+    my_unalias(&shell, args);
+    
+    cr_assert_null(find_alias(shell.alias, "ll"));
+    cr_assert_not_null(find_alias(shell.alias, "grep"));
+
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, replace_args_with_alias_basic)
+{
+    char **old_args = malloc(sizeof(char *) * 3);
+    char **alias_args = malloc(sizeof(char *) * 3);
+    char **new_args;
+
+    old_args[0] = my_strdup("ll");
+    old_args[1] = my_strdup("/tmp");
+    old_args[2] = NULL;
+
+    alias_args[0] = my_strdup("ls");
+    alias_args[1] = my_strdup("-l");
+    alias_args[2] = NULL;
+
+    new_args = replace_args_with_alias(old_args, alias_args);
+
+    cr_assert_not_null(new_args);
+    cr_assert_str_eq(new_args[0], "ls");
+    cr_assert_str_eq(new_args[1], "-l");
+    cr_assert_str_eq(new_args[2], "/tmp");
+    cr_assert_null(new_args[3]);
+
+    free_tab(new_args);
+}
+
+Test(alias_replacement, expand_aliases_basic)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "ll", "ls -l");
+
+    node.args = malloc(sizeof(char *) * 3);
+    node.args[0] = my_strdup("ll");
+    node.args[1] = my_strdup("/tmp");
+    node.args[2] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "ls");
+    cr_assert_str_eq(node.args[1], "-l");
+    cr_assert_str_eq(node.args[2], "/tmp");
+    cr_assert_null(node.args[3]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_recursive)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "a", "b");
+    add_alias(&shell.alias, "b", "ls -l");
+
+    node.args = malloc(sizeof(char *) * 2);
+    node.args[0] = my_strdup("a");
+    node.args[1] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "ls");
+    cr_assert_str_eq(node.args[1], "-l");
+    cr_assert_null(node.args[2]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_loop_protection)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "ls", "ls --color");
+
+    node.args = malloc(sizeof(char *) * 2);
+    node.args[0] = my_strdup("ls");
+    node.args[1] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "ls");
+    cr_assert_str_eq(node.args[1], "--color");
+    cr_assert_null(node.args[2]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_null_safety)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    node.args = NULL;
+
+    expand_aliases(&node, &shell);
+    expand_aliases(NULL, &shell);
+    
+    cr_assert(1);
+}
