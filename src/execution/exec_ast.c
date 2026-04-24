@@ -45,6 +45,9 @@ void exec_node_command(ast_node_t *node, char **env, mysh_t *shell)
     (void) env;
     if (node == NULL || node->args == NULL || node->args[0] == NULL)
         return;
+    expand_aliases(node, shell);
+    if (node->args == NULL || node->args[0] == NULL)
+        return;
     if (handle_builtins(node->args, shell) == 1)
         return;
     cmd_path = find_command(node->args[0], (shell));
