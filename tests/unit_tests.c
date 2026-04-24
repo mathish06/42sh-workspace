@@ -638,3 +638,410 @@ Test(builtin_alias, my_alias_creation)
     cr_assert_str_eq(target->value, "ls -l --color=auto");
     free_alias_list(shell.alias);
 }
+
+Test(builtin_unalias, my_unalias_basic)
+{
+    mysh_t shell;
+    shell.alias = NULL;
+    char *args[] = {"unalias", "ll", NULL};
+
+    add_alias(&shell.alias, "ll", "ls -l");
+    add_alias(&shell.alias, "grep", "grep --color");
+
+    my_unalias(&shell, args);
+    
+    cr_assert_null(find_alias(shell.alias, "ll"));
+    cr_assert_not_null(find_alias(shell.alias, "grep"));
+
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, replace_args_with_alias_basic)
+{
+    char **old_args = malloc(sizeof(char *) * 3);
+    char **alias_args = malloc(sizeof(char *) * 3);
+    char **new_args;
+
+    old_args[0] = my_strdup("ll");
+    old_args[1] = my_strdup("/tmp");
+    old_args[2] = NULL;
+
+    alias_args[0] = my_strdup("ls");
+    alias_args[1] = my_strdup("-l");
+    alias_args[2] = NULL;
+
+    new_args = replace_args_with_alias(old_args, alias_args);
+
+    cr_assert_not_null(new_args);
+    cr_assert_str_eq(new_args[0], "ls");
+    cr_assert_str_eq(new_args[1], "-l");
+    cr_assert_str_eq(new_args[2], "/tmp");
+    cr_assert_null(new_args[3]);
+
+    free_tab(new_args);
+}
+
+Test(alias_replacement, expand_aliases_basic)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "ll", "ls -l");
+
+    node.args = malloc(sizeof(char *) * 3);
+    node.args[0] = my_strdup("ll");
+    node.args[1] = my_strdup("/tmp");
+    node.args[2] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "ls");
+    cr_assert_str_eq(node.args[1], "-l");
+    cr_assert_str_eq(node.args[2], "/tmp");
+    cr_assert_null(node.args[3]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_recursive)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "a", "b");
+    add_alias(&shell.alias, "b", "ls -l");
+
+    node.args = malloc(sizeof(char *) * 2);
+    node.args[0] = my_strdup("a");
+    node.args[1] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "ls");
+    cr_assert_str_eq(node.args[1], "-l");
+    cr_assert_null(node.args[2]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_loop_protection)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "ls", "ls --color");
+
+    node.args = malloc(sizeof(char *) * 2);
+    node.args[0] = my_strdup("ls");
+    node.args[1] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "ls");
+    cr_assert_str_eq(node.args[1], "--color");
+    cr_assert_null(node.args[2]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_null_safety)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    node.args = NULL;
+
+    expand_aliases(&node, &shell);
+    expand_aliases(NULL, &shell);
+    
+    cr_assert(1);
+}
+
+Test(exec_pipe, basic_echo_cat, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    ast_node_t left_node;
+    ast_node_t right_node;
+    ast_node_t pipe_node;
+
+    char *args_left[] = {"echo", "criterion_pipe_test", NULL};
+    char *args_right[] = {"cat", NULL};
+
+    left_node.type = NODE_COMMAND;
+    left_node.args = args_left;
+    left_node.left = NULL;
+    left_node.right = NULL;
+
+    right_node.type = NODE_COMMAND;
+    right_node.args = args_right;
+    right_node.left = NULL;
+    right_node.right = NULL;
+
+    pipe_node.type = NODE_PIPE;
+    pipe_node.args = NULL;
+    pipe_node.left = &left_node;
+    pipe_node.right = &right_node;
+
+    exec_pipe_node(&pipe_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("criterion_pipe_test\n");
+
+    free_env_list(shell.env);
+}
+
+Test(exec_pipe, builtin_and_system_cmd, .init = redirect_all_std)
+{
+    char *envp[] = {"MY_CUSTOM_VAR=pipe_secret", "PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    ast_node_t left_node;
+    ast_node_t right_node;
+    ast_node_t pipe_node;
+
+    char *args_left[] = {"env", NULL};
+    char *args_right[] = {"grep", "MY_CUSTOM_VAR", NULL};
+
+    left_node.type = NODE_COMMAND;
+    left_node.args = args_left;
+    left_node.left = NULL;
+    left_node.right = NULL;
+
+    right_node.type = NODE_COMMAND;
+    right_node.args = args_right;
+    right_node.left = NULL;
+    right_node.right = NULL;
+
+    pipe_node.type = NODE_PIPE;
+    pipe_node.args = NULL;
+    pipe_node.left = &left_node;
+    pipe_node.right = &right_node;
+
+    exec_pipe_node(&pipe_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("MY_CUSTOM_VAR=pipe_secret\n");
+
+    free_env_list(shell.env);
+}
+
+Test(exec_redir, redir_right_and_double_right)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    char *args_cmd[] = {"echo", "first_line", NULL};
+    char *args_file[] = {"/tmp/crit_out.txt", NULL};
+    
+    ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
+    ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
+    ast_node_t redir_node = {NODE_REDIR_R, NULL, &cmd_node, &file_node};
+
+    unlink("/tmp/crit_out.txt");
+
+    exec_redir_node(&redir_node, envp, &shell);
+
+    args_cmd[1] = "second_line";
+    redir_node.type = NODE_REDIR_RR;
+    exec_redir_node(&redir_node, envp, &shell);
+
+    int fd = open("/tmp/crit_out.txt", O_RDONLY);
+    cr_assert_neq(fd, -1, "Le fichier de redirection n'a pas été créé.");
+    
+    char buffer[100] = {0};
+    read(fd, buffer, 99);
+    close(fd);
+
+    cr_assert_str_eq(buffer, "first_line\nsecond_line\n");
+
+    unlink("/tmp/crit_out.txt");
+    free_env_list(shell.env);
+}
+
+Test(exec_redir, redir_left, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    int fd = open("/tmp/crit_in.txt", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    write(fd, "hello_left\n", 11);
+    close(fd);
+
+    char *args_cmd[] = {"cat", NULL};
+    char *args_file[] = {"/tmp/crit_in.txt", NULL};
+    
+    ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
+    ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
+    ast_node_t redir_node = {NODE_REDIR_L, NULL, &cmd_node, &file_node};
+
+    exec_redir_node(&redir_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("hello_left\n");
+
+    unlink("/tmp/crit_in.txt");
+    free_env_list(shell.env);
+}
+
+Test(exec_redir, redir_double_left_heredoc, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    int pipefd[2];
+    pipe(pipefd);
+    write(pipefd[1], "heredoc_line\nEOF\n", 17);
+    close(pipefd[1]);
+    
+    int saved_stdin = dup(0);
+    dup2(pipefd[0], 0);
+    close(pipefd[0]);
+
+    char *args_cmd[] = {"cat", NULL};
+    char *args_file[] = {"EOF", NULL};
+    
+    ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
+    ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
+    ast_node_t redir_node = {NODE_REDIR_LL, NULL, &cmd_node, &file_node};
+
+    exec_redir_node(&redir_node, envp, &shell);
+
+    dup2(saved_stdin, 0);
+    close(saved_stdin);
+
+    cr_assert_stdout_eq_str("heredoc_line\n");
+    free_env_list(shell.env);
+}
+
+Test(exec_redir, redir_errors, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    char *args_cmd[] = {"echo", "test", NULL};
+    char *args_file[] = {"/root/forbidden.txt", NULL};
+    
+    ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
+    ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
+    ast_node_t redir_node = {NODE_REDIR_R, NULL, &cmd_node, &file_node};
+
+    exec_redir_node(&redir_node, envp, &shell); 
+
+    redir_node.type = NODE_REDIR_RR;
+    exec_redir_node(&redir_node, envp, &shell);
+
+    args_file[0] = "/tmp/does_not_exist_42sh_xyz.txt";
+    redir_node.type = NODE_REDIR_L; 
+    exec_redir_node(&redir_node, envp, &shell);
+
+    cr_assert(1);
+    free_env_list(shell.env);
+}
+
+Test(history_nav, up_empty_history)
+{
+    history_t *h = history_init(10);
+    line_state_t st = {0};
+    char buffer[256] = {0};
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_null(st.nav_cursor);
+    cr_assert_str_eq(buffer, "");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_null(st.nav_cursor);
+
+    history_free(h);
+}
+
+Test(history_nav, basic_up_and_down)
+{
+    history_t *h = history_init(10);
+    history_add(h, "cmd1");
+    history_add(h, "cmd2");
+    
+    line_state_t st = {0};
+    char buffer[256] = {0};
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_not_null(st.nav_cursor);
+    cr_assert_str_eq(buffer, "cmd2");
+    cr_assert_eq(st.i, 4);
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_str_eq(buffer, "cmd1");
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_str_eq(buffer, "cmd1");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_str_eq(buffer, "cmd2");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_null(st.nav_cursor);
+    cr_assert_str_eq(buffer, "");
+
+    history_free(h);
+    if (st.saved_draft != NULL)
+        free(st.saved_draft);
+}
+
+Test(history_nav, save_and_restore_draft)
+{
+    history_t *h = history_init(10);
+    history_add(h, "old_command");
+    
+    line_state_t st = {0};
+    char buffer[256] = "echo un_brouillon_non_fini";
+    st.max_len = 26;
+    st.i = 26;
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_str_eq(buffer, "old_command");
+    cr_assert_not_null(st.saved_draft);
+    cr_assert_str_eq(st.saved_draft, "echo un_brouillon_non_fini");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_str_eq(buffer, "echo un_brouillon_non_fini");
+    cr_assert_null(st.nav_cursor);
+
+    history_free(h);
+    if (st.saved_draft != NULL)
+        free(st.saved_draft);
+}
+
+Test(history_nav, interactive_redraw, .init = redirect_all_std)
+{
+    history_t *h = history_init(10);
+    history_add(h, "ls -la");
+    
+    line_state_t st = {0};
+    st.interactive = 1;
+    char buffer[256] = {0};
+
+    history_nav_up(buffer, &st, h);
+
+    cr_assert_stdout_eq_str("\r\033[K$> ls -la");
+
+    history_free(h);
+    if (st.saved_draft != NULL)
+        free(st.saved_draft);
+}
