@@ -763,3 +763,75 @@ Test(alias_replacement, expand_aliases_null_safety)
     
     cr_assert(1);
 }
+
+Test(exec_pipe, basic_echo_cat, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    ast_node_t left_node;
+    ast_node_t right_node;
+    ast_node_t pipe_node;
+
+    char *args_left[] = {"echo", "criterion_pipe_test", NULL};
+    char *args_right[] = {"cat", NULL};
+
+    left_node.type = NODE_COMMAND;
+    left_node.args = args_left;
+    left_node.left = NULL;
+    left_node.right = NULL;
+
+    right_node.type = NODE_COMMAND;
+    right_node.args = args_right;
+    right_node.left = NULL;
+    right_node.right = NULL;
+
+    pipe_node.type = NODE_PIPE;
+    pipe_node.args = NULL;
+    pipe_node.left = &left_node;
+    pipe_node.right = &right_node;
+
+    exec_pipe_node(&pipe_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("criterion_pipe_test\n");
+
+    free_env_list(shell.env);
+}
+
+Test(exec_pipe, builtin_and_system_cmd, .init = redirect_all_std)
+{
+    char *envp[] = {"MY_CUSTOM_VAR=pipe_secret", "PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    ast_node_t left_node;
+    ast_node_t right_node;
+    ast_node_t pipe_node;
+
+    char *args_left[] = {"env", NULL};
+    char *args_right[] = {"grep", "MY_CUSTOM_VAR", NULL};
+
+    left_node.type = NODE_COMMAND;
+    left_node.args = args_left;
+    left_node.left = NULL;
+    left_node.right = NULL;
+
+    right_node.type = NODE_COMMAND;
+    right_node.args = args_right;
+    right_node.left = NULL;
+    right_node.right = NULL;
+
+    pipe_node.type = NODE_PIPE;
+    pipe_node.args = NULL;
+    pipe_node.left = &left_node;
+    pipe_node.right = &right_node;
+
+    exec_pipe_node(&pipe_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("MY_CUSTOM_VAR=pipe_secret\n");
+
+    free_env_list(shell.env);
+}
