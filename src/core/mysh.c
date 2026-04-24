@@ -122,6 +122,7 @@ int mysh(char **env)
     mysh_t shell;
     char *histpath;
 
+    shell.alias = NULL;
     shell.env = env_to_list(env);
     shell.history = history_init(500);
     histpath = build_history_path(shell.env);
