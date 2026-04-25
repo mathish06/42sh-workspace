@@ -58,8 +58,11 @@ char *find_command(char *cmd, mysh_t *shell)
     char **path_tab;
     char *full_path;
 
-    if (has_slash(cmd))
-        return my_strdup(cmd);
+    if (has_slash(cmd)) {
+        if (access(cmd, X_OK) == 0)
+            return my_strdup(cmd);
+        return NULL;
+    }
     result = my_getenv(shell->env, "PATH");
     if (result == NULL)
         return NULL;
