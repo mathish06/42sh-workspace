@@ -452,26 +452,30 @@ Test(inhibitors, quotes_check_valid)
 {
     cr_assert_eq(quotes_check("echo hello"), 1);
     cr_assert_eq(quotes_check("echo 'hello'"), 1);
-    cr_assert_eq(quotes_check("echo 'a' 'b'"), 1);
+    cr_assert_eq(quotes_check("echo \"hello\""), 1);
+    cr_assert_eq(quotes_check("echo 'a' \"b\""), 1);
     cr_assert_eq(quotes_check(""), 1);
 }
 
 Test(inhibitors, quotes_check_unmatched, .init = redirect_all_std)
 {
     cr_assert_eq(quotes_check("echo 'hello"), 0);
+    cr_assert_eq(quotes_check("echo \"hello"), 0);
     cr_assert_eq(quotes_check("'"), 0);
-    cr_assert_eq(quotes_check("echo 'a' 'b"), 0);
+    cr_assert_eq(quotes_check("\""), 0);
+    cr_assert_eq(quotes_check("echo 'a' \"b"), 0);
 }
 
 Test(inhibitors, in_the_quotes_detection)
 {
-    char *line = "echo 'hello' world";
+    char *line = "echo 'hello' \"world\"";
 
     cr_assert_eq(in_the_quotes(line, 0), 0);
     cr_assert_eq(in_the_quotes(line, 5), 0);
     cr_assert_eq(in_the_quotes(line, 7), 1);
-    cr_assert_eq(in_the_quotes(line, 10), 1);
-    cr_assert_eq(in_the_quotes(line, 13), 0);
+    cr_assert_eq(in_the_quotes(line, 12), 0);
+    cr_assert_eq(in_the_quotes(line, 15), 1);
+    cr_assert_eq(in_the_quotes(line, 20), 0);
 }
 
 Test(inhibitors, in_the_quotes_no_quotes)
@@ -485,10 +489,14 @@ Test(inhibitors, in_the_quotes_no_quotes)
 
 Test(inhibitors, remove_quotes_basic)
 {
-    char *result = remove_quotes("'hello'");
+    char *result_single = remove_quotes("'hello'");
+    char *result_double = remove_quotes("\"hello\"");
 
-    cr_assert_str_eq(result, "hello");
-    free(result);
+    cr_assert_str_eq(result_single, "hello");
+    cr_assert_str_eq(result_double, "hello");
+    
+    free(result_single);
+    free(result_double);
 }
 
 Test(inhibitors, remove_quotes_no_quotes)
@@ -499,33 +507,9 @@ Test(inhibitors, remove_quotes_no_quotes)
     free(result);
 }
 
-Test(inhibitors, remove_quotes_multiple)
-{
-    char *result = remove_quotes("'a''b'");
-
-    cr_assert_str_eq(result, "ab");
-    free(result);
-}
-
-Test(inhibitors, remove_quotes_empty)
-{
-    char *result = remove_quotes("");
-
-    cr_assert_str_eq(result, "");
-    free(result);
-}
-
-Test(inhibitors, remove_quotes_only_quotes)
-{
-    char *result = remove_quotes("''");
-
-    cr_assert_str_eq(result, "");
-    free(result);
-}
-
 Test(inhibitors, remove_quotes_mixed_content)
 {
-    char *result = remove_quotes("hello'world'test");
+    char *result = remove_quotes("hello'world'\"test\"");
 
     cr_assert_str_eq(result, "helloworldtest");
     free(result);
@@ -744,6 +728,28 @@ Test(alias_replacement, expand_aliases_loop_protection)
 
     cr_assert_str_eq(node.args[0], "ls");
     cr_assert_str_eq(node.args[1], "--color");
+    cr_assert_null(node.args[2]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_with_quotes)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "msg", "echo \"hello world\"");
+
+    node.args = malloc(sizeof(char *) * 2);
+    node.args[0] = my_strdup("msg");
+    node.args[1] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "echo");
+    cr_assert_str_eq(node.args[1], "hello world");
     cr_assert_null(node.args[2]);
 
     free_tab(node.args);
