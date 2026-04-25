@@ -68,23 +68,49 @@ static void assign_node_type(ast_node_t *node, token_type_t type)
         node->type = NODE_REDIR_LL;
 }
 
+static int check_redir_error(ast_node_t *node, token_t *split)
+{
+    if (node->type != NODE_REDIR_L && node->type != NODE_REDIR_LL &&
+        node->type != NODE_REDIR_R && node->type != NODE_REDIR_RR)
+        return 0;
+    if (node->right == NULL || node->right->args == NULL ||
+        node->right->args[0] == NULL) {
+        my_puterr("Missing name for redirect.\n");
+        if (node->left != NULL)
+            free_ast(node->left);
+        if (split->value != NULL)
+            free(split->value);
+        free(split);
+        free(node);
+        return 1;
+    }
+    return 0;
+}
+
+static ast_node_t *build_left_branch(token_t *head, token_t *split)
+{
+    token_t *curr = head;
+
+    if (split == head)
+        return NULL;
+    while (curr->next != split)
+        curr = curr->next;
+    curr->next = NULL;
+    return build_ast(head);
+}
+
 static ast_node_t *create_operator_node(token_t *head, token_t *split)
 {
     ast_node_t *node = malloc(sizeof(ast_node_t));
-    token_t *curr = head;
 
     if (node == NULL)
         return NULL;
     assign_node_type(node, split->type);
     node->args = NULL;
-    if (split != head) {
-        while (curr->next != split)
-            curr = curr->next;
-        curr->next = NULL;
-        node->left = build_ast(head);
-    } else
-        node->left = NULL;
+    node->left = build_left_branch(head, split);
     node->right = build_ast(split->next);
+    if (check_redir_error(node, split) == 1)
+        return NULL;
     if (split->value != NULL)
         free(split->value);
     free(split);

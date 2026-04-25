@@ -42,10 +42,20 @@ char **replace_args_with_alias(char **old_args, char **alias_args)
     return full;
 }
 
+static char **get_alias_args(char *value)
+{
+    token_t *alias_tokens = lexer(value);
+    char **alias_args = tokens_to_array(alias_tokens);
+
+    free_tokens(alias_tokens);
+    return alias_args;
+}
+
 static void process_alias_loop(ast_node_t *node, mysh_t *shell)
 {
     char **alias_args;
     alias_t *target = NULL;
+    int is_same;
 
     for (int loop = 0; loop < 20; loop++) {
         if (node->args[0] == NULL)
@@ -53,15 +63,14 @@ static void process_alias_loop(ast_node_t *node, mysh_t *shell)
         target = find_alias(shell->alias, node->args[0]);
         if (target == NULL)
             break;
-        alias_args = my_str_to_word_array(target->value, " \t");
+        alias_args = get_alias_args(target->value);
         if (alias_args == NULL)
             break;
-        if (alias_args[0] != NULL &&
-            my_strcmp(alias_args[0], node->args[0]) == 0) {
-            node->args = replace_args_with_alias(node->args, alias_args);
-            break;
-        }
+        is_same = (alias_args[0] && my_strcmp(alias_args[0],
+                node->args[0]) == 0);
         node->args = replace_args_with_alias(node->args, alias_args);
+        if (is_same)
+            break;
     }
 }
 

@@ -11,12 +11,12 @@ static void check_program_status(int status)
     int sig_no = WTERMSIG(status);
 
     if (sig_no == SIGSEGV)
-        my_putstr("Segmentation fault");
+        my_puterr("Segmentation fault");
     if (sig_no == SIGFPE)
-        my_putstr("Floating exception");
+        my_puterr("Floating exception");
     if (WCOREDUMP(status))
-        my_putstr(" (core dumped)");
-    my_putchar('\n');
+        my_puterr(" (core dumped)");
+    write(2, "\n", 1);
 }
 
 static void run_child_process(char *path, ast_node_t *node, mysh_t *shell)
@@ -52,8 +52,8 @@ void exec_node_command(ast_node_t *node, char **env, mysh_t *shell)
         return;
     cmd_path = find_command(node->args[0], (shell));
     if (cmd_path == NULL) {
-        my_putstr(node->args[0]);
-        my_putstr(": Command not found.\n");
+        my_puterr(node->args[0]);
+        my_puterr(": Command not found.\n");
         return;
     }
     run_child_process(cmd_path, node, shell);

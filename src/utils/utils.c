@@ -153,3 +153,14 @@ char *my_getline(history_t *hist)
         }
     }
 }
+
+int my_puterr(char const *str)
+{
+    int i = 0;
+
+    while (str[i] != '\0') {
+        write(2, &str[i], 1);
+        i++;
+    }
+    return 0;
+}

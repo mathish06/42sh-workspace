@@ -9,18 +9,18 @@
 void print_exec_error(char *cmd)
 {
     if (errno == ENOEXEC) {
-        my_putstr(cmd);
-        my_putstr(": Exec format error. Binary file not executable.\n");
+        my_puterr(cmd);
+        my_puterr(": Exec format error. Binary file not executable.\n");
         return;
     }
     if (errno == EACCES) {
-        my_putstr(cmd);
-        my_putstr(": Permission denied.\n");
+        my_puterr(cmd);
+        my_puterr(": Permission denied.\n");
         return;
     }
     if (errno == ENOENT) {
-        my_putstr(cmd);
-        my_putstr(": Command not found.\n");
+        my_puterr(cmd);
+        my_puterr(": Command not found.\n");
         return;
     }
     perror(cmd);
