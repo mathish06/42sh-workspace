@@ -87,6 +87,7 @@ void history_nav_up(char *buffer, line_state_t *st, history_t *h);
 void history_nav_down(char *buffer, line_state_t *st, history_t *h);
 history_entry_t *resolve_event(history_t *h, const char *token, int len);
 char *expand_history_events(const char *line, history_t *h);
+char *expand_variable(const char *line, mysh_t *shell);
 
 void free_alias_list(alias_t *head);
 alias_t *find_alias(alias_t *head, char *alias_name);
