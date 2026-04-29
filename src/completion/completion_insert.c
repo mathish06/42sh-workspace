@@ -44,3 +44,27 @@ comp_ctx_t *build_ctx(char *buffer, line_state_t *st)
     free(word);
     return ctx;
 }
+
+void free_ctx(comp_ctx_t *ctx)
+{
+    if (ctx == NULL)
+        return;
+    free(ctx->dir);
+    free(ctx->prefix);
+    free(ctx);
+}
+
+void free_comp_list(comp_list_t *list)
+{
+    int i = 0;
+
+    if (list == NULL)
+        return;
+    while (i < list->count) {
+        free(list->entries[i]);
+        i++;
+    }
+    free(list->entries);
+    free(list->is_dir);
+    free(list);
+}
