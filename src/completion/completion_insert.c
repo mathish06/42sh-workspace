@@ -30,3 +30,17 @@ static void split_word(comp_ctx_t *ctx, char *word)
         ctx->dir = my_strndup(word, i);
     ctx->prefix = my_strdup(word + i + 1);
 }
+
+comp_ctx_t *build_ctx(char *buffer, line_state_t *st)
+{
+    comp_ctx_t *ctx = malloc(sizeof(comp_ctx_t));
+    char *word;
+
+    if (ctx == NULL)
+        return NULL;
+    get_word_bounds(buffer, st->i, &ctx->word_start, &ctx->word_end);
+    word = extract_word(buffer, ctx->word_start, ctx->word_end);
+    split_word(ctx, word);
+    free(word);
+    return ctx;
+}
