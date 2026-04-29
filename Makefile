@@ -33,6 +33,7 @@ SRC     =   main.c										\
 			src/history/history_lookup.c				\
 			src/history/expand_history.c				\
 			src/history/history_io.c					\
+			src/environment/expand_variables.c			\
 			src/utils/utils_part_two.c					\
 			src/utils/utils.c							\
 			src/utils/error_handling.c					\

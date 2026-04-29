@@ -1,3 +1,9 @@
+/*
+** EPITECH PROJECT, 2026
+** 42sh
+** File description:
+** unit_tests
+*/
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
 #include <unistd.h>
@@ -494,7 +500,7 @@ Test(inhibitors, remove_quotes_basic)
 
     cr_assert_str_eq(result_single, "hello");
     cr_assert_str_eq(result_double, "hello");
-    
+
     free(result_single);
     free(result_double);
 }
@@ -626,14 +632,15 @@ Test(builtin_alias, my_alias_creation)
 Test(builtin_unalias, my_unalias_basic)
 {
     mysh_t shell;
-    shell.alias = NULL;
     char *args[] = {"unalias", "ll", NULL};
+
+    shell.alias = NULL;
 
     add_alias(&shell.alias, "ll", "ls -l");
     add_alias(&shell.alias, "grep", "grep --color");
 
     my_unalias(&shell, args);
-    
+
     cr_assert_null(find_alias(shell.alias, "ll"));
     cr_assert_not_null(find_alias(shell.alias, "grep"));
 
@@ -766,7 +773,7 @@ Test(alias_replacement, expand_aliases_null_safety)
 
     expand_aliases(&node, &shell);
     expand_aliases(NULL, &shell);
-    
+
     cr_assert(1);
 }
 
@@ -774,15 +781,14 @@ Test(exec_pipe, basic_echo_cat, .init = redirect_all_std)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    shell.env = env_to_list(envp);
-    shell.alias = NULL;
-
     ast_node_t left_node;
     ast_node_t right_node;
     ast_node_t pipe_node;
-
     char *args_left[] = {"echo", "criterion_pipe_test", NULL};
     char *args_right[] = {"cat", NULL};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
 
     left_node.type = NODE_COMMAND;
     left_node.args = args_left;
@@ -810,15 +816,14 @@ Test(exec_pipe, builtin_and_system_cmd, .init = redirect_all_std)
 {
     char *envp[] = {"MY_CUSTOM_VAR=pipe_secret", "PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    shell.env = env_to_list(envp);
-    shell.alias = NULL;
-
     ast_node_t left_node;
     ast_node_t right_node;
     ast_node_t pipe_node;
-
     char *args_left[] = {"env", NULL};
     char *args_right[] = {"grep", "MY_CUSTOM_VAR", NULL};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
 
     left_node.type = NODE_COMMAND;
     left_node.args = args_left;
@@ -846,15 +851,16 @@ Test(exec_redir, redir_right_and_double_right)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    shell.env = env_to_list(envp);
-    shell.alias = NULL;
-
     char *args_cmd[] = {"echo", "first_line", NULL};
     char *args_file[] = {"/tmp/crit_out.txt", NULL};
-    
     ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
     ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
     ast_node_t redir_node = {NODE_REDIR_R, NULL, &cmd_node, &file_node};
+    int fd;
+    char buffer[100] = {0};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
 
     unlink("/tmp/crit_out.txt");
 
@@ -864,10 +870,9 @@ Test(exec_redir, redir_right_and_double_right)
     redir_node.type = NODE_REDIR_RR;
     exec_redir_node(&redir_node, envp, &shell);
 
-    int fd = open("/tmp/crit_out.txt", O_RDONLY);
+    fd = open("/tmp/crit_out.txt", O_RDONLY);
     cr_assert_neq(fd, -1, "Le fichier de redirection n'a pas été créé.");
-    
-    char buffer[100] = {0};
+
     read(fd, buffer, 99);
     close(fd);
 
@@ -881,19 +886,19 @@ Test(exec_redir, redir_left, .init = redirect_all_std)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    shell.env = env_to_list(envp);
-    shell.alias = NULL;
-
-    int fd = open("/tmp/crit_in.txt", O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    write(fd, "hello_left\n", 11);
-    close(fd);
-
+    int fd;
     char *args_cmd[] = {"cat", NULL};
     char *args_file[] = {"/tmp/crit_in.txt", NULL};
-    
     ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
     ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
     ast_node_t redir_node = {NODE_REDIR_L, NULL, &cmd_node, &file_node};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    fd = open("/tmp/crit_in.txt", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    write(fd, "hello_left\n", 11);
+    close(fd);
 
     exec_redir_node(&redir_node, envp, &shell);
 
@@ -907,24 +912,24 @@ Test(exec_redir, redir_double_left_heredoc, .init = redirect_all_std)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    shell.env = env_to_list(envp);
-    shell.alias = NULL;
-
     int pipefd[2];
-    pipe(pipefd);
-    write(pipefd[1], "heredoc_line\nEOF\n", 17);
-    close(pipefd[1]);
-    
-    int saved_stdin = dup(0);
-    dup2(pipefd[0], 0);
-    close(pipefd[0]);
-
+    int saved_stdin;
     char *args_cmd[] = {"cat", NULL};
     char *args_file[] = {"EOF", NULL};
-    
     ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
     ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
     ast_node_t redir_node = {NODE_REDIR_LL, NULL, &cmd_node, &file_node};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    pipe(pipefd);
+    write(pipefd[1], "heredoc_line\nEOF\n", 17);
+    close(pipefd[1]);
+
+    saved_stdin = dup(0);
+    dup2(pipefd[0], 0);
+    close(pipefd[0]);
 
     exec_redir_node(&redir_node, envp, &shell);
 
@@ -939,23 +944,22 @@ Test(exec_redir, redir_errors, .init = redirect_all_std)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    shell.env = env_to_list(envp);
-    shell.alias = NULL;
-
     char *args_cmd[] = {"echo", "test", NULL};
     char *args_file[] = {"/root/forbidden.txt", NULL};
-    
     ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
     ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
     ast_node_t redir_node = {NODE_REDIR_R, NULL, &cmd_node, &file_node};
 
-    exec_redir_node(&redir_node, envp, &shell); 
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    exec_redir_node(&redir_node, envp, &shell);
 
     redir_node.type = NODE_REDIR_RR;
     exec_redir_node(&redir_node, envp, &shell);
 
     args_file[0] = "/tmp/does_not_exist_42sh_xyz.txt";
-    redir_node.type = NODE_REDIR_L; 
+    redir_node.type = NODE_REDIR_L;
     exec_redir_node(&redir_node, envp, &shell);
 
     cr_assert(1);
@@ -981,11 +985,11 @@ Test(history_nav, up_empty_history)
 Test(history_nav, basic_up_and_down)
 {
     history_t *h = history_init(10);
-    history_add(h, "cmd1");
-    history_add(h, "cmd2");
-    
     line_state_t st = {0};
     char buffer[256] = {0};
+
+    history_add(h, "cmd1");
+    history_add(h, "cmd2");
 
     history_nav_up(buffer, &st, h);
     cr_assert_not_null(st.nav_cursor);
@@ -1013,10 +1017,11 @@ Test(history_nav, basic_up_and_down)
 Test(history_nav, save_and_restore_draft)
 {
     history_t *h = history_init(10);
-    history_add(h, "old_command");
-    
     line_state_t st = {0};
     char buffer[256] = "echo un_brouillon_non_fini";
+
+    history_add(h, "old_command");
+
     st.max_len = 26;
     st.i = 26;
 
@@ -1037,11 +1042,12 @@ Test(history_nav, save_and_restore_draft)
 Test(history_nav, interactive_redraw, .init = redirect_all_std)
 {
     history_t *h = history_init(10);
-    history_add(h, "ls -la");
-    
     line_state_t st = {0};
-    st.interactive = 1;
     char buffer[256] = {0};
+
+    history_add(h, "ls -la");
+
+    st.interactive = 1;
 
     history_nav_up(buffer, &st, h);
 
