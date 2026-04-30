@@ -1057,3 +1057,41 @@ Test(history_nav, interactive_redraw, .init = redirect_all_std)
     if (st.saved_draft != NULL)
         free(st.saved_draft);
 }
+
+Test(exec_ast, logic_and_operator, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args_left[] = {"true", NULL};
+    char *args_right[] = {"echo", "AND_WORKS", NULL};
+    ast_node_t left_node = {NODE_COMMAND, args_left, NULL, NULL};
+    ast_node_t right_node = {NODE_COMMAND, args_right, NULL, NULL};
+    ast_node_t and_node = {NODE_AND, NULL, &left_node, &right_node};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+    shell.last_status = 0;
+    exec_ast(&and_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("AND_WORKS\n");
+    free_env_list(shell.env);
+}
+
+Test(exec_ast, logic_or_operator, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args_left[] = {"false", NULL};
+    char *args_right[] = {"echo", "OR_WORKS", NULL};
+    ast_node_t left_node = {NODE_COMMAND, args_left, NULL, NULL};
+    ast_node_t right_node = {NODE_COMMAND, args_right, NULL, NULL};
+    ast_node_t or_node = {NODE_OR, NULL, &left_node, &right_node};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+    shell.last_status = 0;
+    exec_ast(&or_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("OR_WORKS\n");
+    free_env_list(shell.env);
+}

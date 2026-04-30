@@ -33,8 +33,12 @@ static void run_child_process(char *path, ast_node_t *node, mysh_t *shell)
         exit(1);
     } else {
         waitpid(pid, &status, 0);
-        if (WIFSIGNALED(status))
+        if (WIFEXITED(status))
+            shell->last_status = WEXITSTATUS(status);
+        if (WIFSIGNALED(status)) {
             check_program_status(status);
+            shell->last_status = 1;
+        }
     }
 }
 
@@ -54,10 +58,29 @@ void exec_node_command(ast_node_t *node, char **env, mysh_t *shell)
     if (cmd_path == NULL) {
         my_puterr(node->args[0]);
         my_puterr(": Command not found.\n");
+        shell->last_status = 1;
         return;
     }
     run_child_process(cmd_path, node, shell);
     free(cmd_path);
+}
+
+static void exec_logic_nodes(ast_node_t *node, char **env, mysh_t *shell)
+{
+    if (node->type == NODE_SEPARATOR) {
+        exec_ast(node->left, env, shell);
+        exec_ast(node->right, env, shell);
+    }
+    if (node->type == NODE_AND) {
+        exec_ast(node->left, env, shell);
+        if (shell->last_status == 0)
+            exec_ast(node->right, env, shell);
+    }
+    if (node->type == NODE_OR) {
+        exec_ast(node->left, env, shell);
+        if (shell->last_status != 0)
+            exec_ast(node->right, env, shell);
+    }
 }
 
 void exec_ast(ast_node_t *node, char **env, mysh_t *shell)
@@ -66,10 +89,9 @@ void exec_ast(ast_node_t *node, char **env, mysh_t *shell)
         return;
     if (node->type == NODE_COMMAND)
         exec_node_command(node, env, shell);
-    if (node->type == NODE_SEPARATOR) {
-        exec_ast(node->left, env, shell);
-        exec_ast(node->right, env, shell);
-    }
+    if (node->type == NODE_SEPARATOR || node->type == NODE_AND ||
+        node->type == NODE_OR)
+        exec_logic_nodes(node, env, shell);
     if (node->type == NODE_PIPE)
         exec_pipe_node(node, env, shell);
     if (node->type == NODE_REDIR_R || node->type == NODE_REDIR_RR ||

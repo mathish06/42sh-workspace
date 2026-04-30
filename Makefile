@@ -41,7 +41,8 @@ SRC     =   main.c										\
 			src/alias/alias_tools.c						\
 			src/builtins/my_alias.c						\
 			src/builtins/my_unalias.c					\
-			src/execution/alias_replacement.c
+			src/execution/alias_replacement.c			\
+			src/parsing/tree_search.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
@@ -110,6 +111,8 @@ clean:
 	@rm -f $(OBJ)
 	@rm -f $(LIB_OBJ)
 	@rm -f *.gcno *.gcda
+	@rm -f src/*/*.gcno src/*/*.gcda
+	@rm -f tests/*.gcno tests/*.gcda
 	@rm -f vgcore.*
 	@rm -f *~
 
@@ -129,7 +132,7 @@ tests_run: fclean $(LIB_NAME)
 	@gcc -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
 	@./unit_tests
 	@gcovr --exclude tests/
-	@gcovr --txt-metric branch --exclude tests/
+	@gcovr --branches --exclude tests/
 
 coverage: tests_run
 	@gcovr --html-details -o coverage.html --exclude tests/

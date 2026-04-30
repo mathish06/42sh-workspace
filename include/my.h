@@ -70,6 +70,9 @@ void free_tokens(token_t *head);
 int quotes_check(char *line);
 int in_the_quotes(char *line, int pos);
 char *remove_quotes(char *word);
+token_t *find_operator(token_t *head, token_type_t type);
+token_t *find_any_redir(token_t *head);
+ast_node_t *create_leaf_node(token_t *head);
 
 char *find_command(char *cmd, mysh_t *shell);
 void exec_node_command(ast_node_t *node, char **env, mysh_t *shell);

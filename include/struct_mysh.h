@@ -13,6 +13,8 @@ typedef enum token_type_e {
     TOKEN_WORD,
     TOKEN_PIPE,
     TOKEN_SEPARATOR,
+    TOKEN_AND,
+    TOKEN_OR,
     TOKEN_REDIR_RIGHT,
     TOKEN_REDIR_DOUBLE_RIGHT,
     TOKEN_REDIR_LEFT,
@@ -31,6 +33,8 @@ typedef enum ast_node_type_e {
     NODE_COMMAND,
     NODE_PIPE,
     NODE_SEPARATOR,
+    NODE_AND,
+    NODE_OR,
     NODE_REDIR_R,
     NODE_REDIR_RR,
     NODE_REDIR_L,
@@ -89,6 +93,7 @@ typedef struct mysh_s {
     struct termios original_term;
     history_t *history;
     alias_t *alias;
+    int last_status;
 } mysh_t;
 
 #endif
