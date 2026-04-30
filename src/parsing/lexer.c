@@ -21,7 +21,8 @@ static token_t *create_token(token_type_t type, char *value)
 
 static int is_operator(char c)
 {
-    if (c == '|' || c == '>' || c == '<' || c == ';' || c == '(' || c == ')')
+    if (c == '|' || c == '>' || c == '<' || c == ';' || c == '(' || c == ')' ||
+        c == '&')
         return 1;
     return 0;
 }
