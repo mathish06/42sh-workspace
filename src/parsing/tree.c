@@ -10,6 +10,10 @@ static void assign_node_type(ast_node_t *node, token_type_t type)
 {
     if (type == TOKEN_SEPARATOR)
         node->type = NODE_SEPARATOR;
+    if (type == TOKEN_AND)
+        node->type = NODE_AND;
+    if (type == TOKEN_OR)
+        node->type = NODE_OR;
     if (type == TOKEN_PIPE)
         node->type = NODE_PIPE;
     if (type == TOKEN_REDIR_RIGHT)
@@ -98,6 +102,10 @@ static token_t *find_split_token(token_t *head)
 {
     token_t *split = find_operator(head, TOKEN_SEPARATOR);
 
+    if (split == NULL)
+        split = find_operator(head, TOKEN_OR);
+    if (split == NULL)
+        split = find_operator(head, TOKEN_AND);
     if (split == NULL)
         split = find_operator(head, TOKEN_PIPE);
     if (split == NULL)
