@@ -1095,3 +1095,58 @@ Test(exec_ast, logic_or_operator, .init = redirect_all_std)
     cr_assert_stdout_eq_str("OR_WORKS\n");
     free_env_list(shell.env);
 }
+
+Test(builtin_repeat, basic_execution, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args[] = {"repeat", "3", "echo", "test_repeat", NULL};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    int ret = my_repeat(&shell, args);
+    cr_assert_eq(ret, 0);
+    
+    cr_assert_stdout_eq_str("test_repeat\ntest_repeat\ntest_repeat\n");
+
+    free_env_list(shell.env);
+}
+
+Test(builtin_repeat, too_few_args, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args_no_cmd[] = {"repeat", "3", NULL};
+    char *args_nothing[] = {"repeat", NULL};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    int ret1 = my_repeat(&shell, args_no_cmd);
+    cr_assert_eq(ret1, 1);
+
+    int ret2 = my_repeat(&shell, args_nothing);
+    cr_assert_eq(ret2, 1);
+
+    cr_assert_stderr_eq_str("repeat: Too few arguments.\nrepeat: Too few arguments.\n");
+
+    free_env_list(shell.env);
+}
+
+Test(builtin_repeat, negative_or_zero_count, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args[] = {"repeat", "-5", "echo", "test_repeat", NULL};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    int ret = my_repeat(&shell, args);
+    cr_assert_eq(ret, 0);
+    
+    cr_assert_stdout_eq_str("");
+
+    free_env_list(shell.env);
+}
