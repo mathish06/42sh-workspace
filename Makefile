@@ -126,11 +126,11 @@ re: fclean all
 
 # ─── Tests Rules ─────────────────────────────────────────────────────────
 tests_run: fclean $(LIB_NAME)
-    $(call pretty_header, 🧪 Compiling and running unit tests 🧪)
-    @$(CC) -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
-    @./unit_tests
-    @gcovr --exclude tests/
-    @gcovr --branches --exclude tests/
+	$(call pretty_header, 🧪 Compiling and running unit tests 🧪)
+	@$(CC) -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
+	@./unit_tests
+	@gcovr --exclude tests/
+	@gcovr --branches --exclude tests/
 
 coverage: tests_run
 	@gcovr --html-details -o coverage.html --exclude tests/
