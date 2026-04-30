@@ -101,4 +101,6 @@ int my_unalias(mysh_t *shell, char **args);
 char **replace_args_with_alias(char **old_args, char **alias_args);
 void expand_aliases(ast_node_t *node, mysh_t *shell);
 
+int my_repeat(mysh_t *shell, char **args);
+
 #endif
