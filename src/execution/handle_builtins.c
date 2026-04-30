@@ -28,6 +28,15 @@ static int handle_local_vars(char **args, mysh_t *shell)
     return 0;
 }
 
+static int handle_local_vars_second(char **args, mysh_t *shell)
+{
+    if (my_strcmp(args[0], "repeat") == 0) {
+        my_repeat(shell, args);
+        return 1;
+    }
+    return 0;
+}
+
 int handle_builtins(char **args, mysh_t *shell)
 {
     if (my_strcmp(args[0], "env") == 0) {
@@ -46,5 +55,7 @@ int handle_builtins(char **args, mysh_t *shell)
         my_cd(args, shell);
         return 1;
     }
-    return handle_local_vars(args, shell);
+    if (handle_local_vars(args, shell) == 1)
+        return 1;
+    return handle_local_vars_second(args, shell);
 }
