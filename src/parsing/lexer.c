@@ -55,6 +55,21 @@ static token_t *handle_redirections(char *line, int *i)
     return NULL;
 }
 
+static token_t *handle_or_and(char *line, int *i)
+{
+    if (in_the_quotes(line, *i))
+        return NULL;
+    if (line[*i] == '|' && line[*i + 1] == '|') {
+        (*i) += 2;
+        return create_token(TOKEN_OR, NULL);
+    }
+    if (line[*i] == '&' && line[*i + 1] == '&') {
+        (*i) += 2;
+        return create_token(TOKEN_AND, NULL);
+    }
+    return NULL;
+}
+
 static token_t *handle_basic_operators(char *line, int *i)
 {
     if (in_the_quotes(line, *i))
@@ -104,6 +119,9 @@ token_t *get_next_token(char *line, int *i)
     if (line[*i] == '\0')
         return NULL;
     token = handle_redirections(line, i);
+    if (token != NULL)
+        return token;
+    token = handle_or_and(line, i);
     if (token != NULL)
         return token;
     token = handle_basic_operators(line, i);
