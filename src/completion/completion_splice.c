@@ -60,3 +60,22 @@ static void write_new_word(char *buffer, comp_ctx_t *ctx,
     if (is_dir)
         buffer[ctx->word_end - 1] = '/';
 }
+
+void insert_completion(line_ctx_t *lc, comp_ctx_t *ctx,
+    const char *text, int is_dir)
+{
+    int old_wlen = ctx->word_end - ctx->word_start;
+    int plen = my_strlen((char *)ctx->prefix);
+    int tlen = my_strlen((char *)text);
+    int suffix = (is_dir ? 1 : 0);
+    int new_wlen = old_wlen - plen + tlen + suffix;
+    int final_len = lc->st->max_len - old_wlen + new_wlen;
+
+    if (final_len >= LINE_BUF_CAP - 1)
+        return;
+    resize_word(lc->buffer, lc->st, ctx, new_wlen);
+    write_new_word(lc->buffer, ctx, text, is_dir);
+    lc->buffer[lc->st->max_len] = '\0';
+    lc->st->i = ctx->word_end;
+    redraw_prompt_line(lc->buffer, lc->st);
+}
