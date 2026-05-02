@@ -6,6 +6,16 @@
 */
 #include "../../include/my.h"
 
+static int needs_quotes(char *str)
+{
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == ' ' || str[i] == '\t' || str[i] == '<' ||
+            str[i] == '>' || str[i] == '|' || str[i] == '&')
+            return 1;
+    }
+    return 0;
+}
+
 static int one_arg(mysh_t *shell)
 {
     alias_t *curr = shell->alias;
@@ -33,6 +43,19 @@ static int two_args(mysh_t *shell, char **args)
     return 0;
 }
 
+static void fill_alias_value(char *full_value, char **args)
+{
+    for (int i = 2; args[i] != NULL; i++) {
+        if (i > 2)
+            my_strcat(full_value, " ");
+        if (needs_quotes(args[i]) == 1)
+            my_strcat(full_value, "'");
+        my_strcat(full_value, args[i]);
+        if (needs_quotes(args[i]) == 1)
+            my_strcat(full_value, "'");
+    }
+}
+
 static int three_args(mysh_t *shell, char **args)
 {
     int len = 0;
@@ -41,15 +64,14 @@ static int three_args(mysh_t *shell, char **args)
     for (int i = 2; args[i] != NULL; i++) {
         len += my_strlen(args[i]);
         len++;
+        if (needs_quotes(args[i]) == 1)
+            len += 2;
     }
     full_value = malloc(sizeof(char) * len);
     if (full_value == NULL)
         return 84;
-    full_value = my_strcpy(full_value, args[2]);
-    for (int i = 3; args[i] != NULL; i++) {
-        full_value = my_strcat(full_value, " ");
-        full_value = my_strcat(full_value, args[i]);
-    }
+    full_value[0] = '\0';
+    fill_alias_value(full_value, args);
     add_alias(&(shell->alias), args[1], full_value);
     free(full_value);
     return 0;

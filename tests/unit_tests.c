@@ -1101,13 +1101,13 @@ Test(builtin_repeat, basic_execution, .init = redirect_all_std)
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
     char *args[] = {"repeat", "3", "echo", "test_repeat", NULL};
+    int ret;
 
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
-    int ret = my_repeat(&shell, args);
+    ret = my_repeat(&shell, args);
     cr_assert_eq(ret, 0);
-    
     cr_assert_stdout_eq_str("test_repeat\ntest_repeat\ntest_repeat\n");
 
     free_env_list(shell.env);
@@ -1119,17 +1119,20 @@ Test(builtin_repeat, too_few_args, .init = redirect_all_std)
     mysh_t shell;
     char *args_no_cmd[] = {"repeat", "3", NULL};
     char *args_nothing[] = {"repeat", NULL};
+    int ret1;
+    int ret2;
 
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
-    int ret1 = my_repeat(&shell, args_no_cmd);
+    ret1 = my_repeat(&shell, args_no_cmd);
     cr_assert_eq(ret1, 1);
 
-    int ret2 = my_repeat(&shell, args_nothing);
+    ret2 = my_repeat(&shell, args_nothing);
     cr_assert_eq(ret2, 1);
 
-    cr_assert_stderr_eq_str("repeat: Too few arguments.\nrepeat: Too few arguments.\n");
+    cr_assert_stderr_eq_str("repeat: Too few arguments.\n"
+        "repeat: Too few arguments.\n");
 
     free_env_list(shell.env);
 }
@@ -1139,14 +1142,51 @@ Test(builtin_repeat, negative_or_zero_count, .init = redirect_all_std)
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
     char *args[] = {"repeat", "-5", "echo", "test_repeat", NULL};
+    int ret;
 
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
-    int ret = my_repeat(&shell, args);
+    ret = my_repeat(&shell, args);
     cr_assert_eq(ret, 0);
-    
     cr_assert_stdout_eq_str("");
 
     free_env_list(shell.env);
+}
+
+Test(ast_builder, invalid_null_command, .init = redirect_all_std)
+{
+    token_t *t1 = malloc(sizeof(token_t));
+    token_t *t2 = malloc(sizeof(token_t));
+    ast_node_t *tree;
+
+    t1->type = TOKEN_WORD;
+    t1->value = my_strdup("ls");
+
+    t2->type = TOKEN_AND;
+    t2->value = my_strdup("&&");
+
+    t1->next = t2;
+    t2->next = NULL;
+
+    tree = build_ast(t1);
+
+    cr_assert_null(tree);
+    cr_assert_stderr_eq_str("Invalid null command.\n");
+}
+
+Test(builtin_alias, quotes_handling, .init = redirect_all_std)
+{
+    mysh_t shell;
+    char *args_add[] = {"alias", "say_hello", "echo", "hello world", NULL};
+    char *args_display[] = {"alias", NULL};
+
+    shell.alias = NULL;
+
+    my_alias(&shell, args_add);
+    my_alias(&shell, args_display);
+
+    cr_assert_stdout_eq_str("say_hello\techo 'hello world'\n");
+
+    free_alias_list(shell.alias);
 }
