@@ -130,7 +130,7 @@ re: fclean all
 # ─── Tests Rules ─────────────────────────────────────────────────────────
 tests_run: fclean $(LIB_NAME)
 	$(call pretty_header, 🧪 Compiling and running unit tests 🧪)
-	@gcc -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
+	@$(CC) -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
 	@./unit_tests
 	@gcovr --exclude tests/
 	@gcovr --branches --exclude tests/
