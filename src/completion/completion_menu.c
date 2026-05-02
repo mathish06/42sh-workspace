@@ -47,3 +47,15 @@ static void draw_row(comp_list_t *l, menu_state_t *m, int row, int selected)
         c++;
     }
 }
+
+void compute_grid(comp_list_t *l, menu_state_t *m)
+{
+    int w = max_entry_len(l) + 2;
+
+    m->term_cols = get_term_cols();
+    m->col_width = w;
+    m->cols = m->term_cols / w;
+    if (m->cols < 1)
+        m->cols = 1;
+    m->rows = (l->count + m->cols - 1) / m->cols;
+}
