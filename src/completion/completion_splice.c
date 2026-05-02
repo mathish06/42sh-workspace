@@ -44,3 +44,19 @@ static void resize_word(char *buffer, line_state_t *st,
     }
     ctx->word_end = ctx->word_start + new_len;
 }
+
+static void write_new_word(char *buffer, comp_ctx_t *ctx,
+    const char *text, int is_dir)
+{
+    int tlen = my_strlen((char *)text);
+    int new_len = ctx->word_end - ctx->word_start;
+    int suffix = (is_dir ? 1 : 0);
+    int k = 0;
+
+    while (k < tlen) {
+        buffer[ctx->word_start + (new_len - tlen - suffix) + k] = text[k];
+        k++;
+    }
+    if (is_dir)
+        buffer[ctx->word_end - 1] = '/';
+}
