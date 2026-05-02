@@ -59,3 +59,24 @@ void compute_grid(comp_list_t *l, menu_state_t *m)
         m->cols = 1;
     m->rows = (l->count + m->cols - 1) / m->cols;
 }
+
+void draw_menu(comp_list_t *l, menu_state_t *m, int selected)
+{
+    int r = 0;
+
+    write(1, "\n", 1);
+    while (r < m->rows) {
+        write(1, "\r\033[K", 4);
+        draw_row(l, m, r, selected);
+        if (r + 1 < m->rows)
+            write(1, "\n", 1);
+        r++;
+    }
+    r = 0;
+    while (r < m->rows) {
+        write(1, "\033[A", 3);
+        r++;
+    }
+    write(1, "\r", 1);
+    m->printed_rows = m->rows;
+}
