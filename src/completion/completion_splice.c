@@ -15,3 +15,13 @@ static void shift_right(char *buffer, int from, int max, int by)
         p--;
     }
 }
+
+static void shift_left(char *buffer, int from, int max, int by)
+{
+    int p = from;
+
+    while (p + by <= max) {
+        buffer[p] = buffer[p + by];
+        p++;
+    }
+}
