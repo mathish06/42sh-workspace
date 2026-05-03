@@ -17,3 +17,15 @@ int already_in(comp_list_t *l, const char *name)
     }
     return 0;
 }
+
+int is_first_word(char *buffer, int word_start)
+{
+    int i = 0;
+
+    while (i < word_start) {
+        if (buffer[i] != ' ' && buffer[i] != '\t')
+            return 0;
+        i++;
+    }
+    return 1;
+}
