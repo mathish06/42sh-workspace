@@ -31,3 +31,19 @@ int run_menu_loop(line_ctx_t *lc, comp_ctx_t *ctx, comp_list_t *l)
             return menu_pick(lc, ctx, l, &m);
     }
 }
+
+static int run_completion(line_ctx_t *lc, comp_ctx_t *ctx)
+{
+    comp_list_t *l;
+
+    if (try_path_completion(lc, ctx) == 1)
+        return 1;
+    l = collect_entries(ctx);
+    if (l == NULL || l->count == 0) {
+        free_comp_list(l);
+        return 0;
+    }
+    show_menu(lc, ctx, l);
+    free_comp_list(l);
+    return 1;
+}
