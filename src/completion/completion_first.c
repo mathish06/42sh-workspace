@@ -50,3 +50,19 @@ static int should_complete_command(char *buffer, comp_ctx_t *ctx)
         return 0;
     return 1;
 }
+
+int try_path_completion(line_ctx_t *lc, comp_ctx_t *ctx)
+{
+    comp_list_t *l;
+
+    if (!should_complete_command(lc->buffer, ctx))
+        return 0;
+    l = collect_path_commands(ctx->prefix);
+    if (l == NULL || l->count == 0) {
+        free_comp_list(l);
+        return 0;
+    }
+    show_menu(lc, ctx, l);
+    free_comp_list(l);
+    return 1;
+}
