@@ -38,3 +38,17 @@ static int step_selection(menu_state_t *m, int count, char dir)
     m->selected = s;
     return 0;
 }
+
+static int read_escape_seq(comp_list_t *l, menu_state_t *m)
+{
+    char c;
+
+    if (read(0, &c, 1) <= 0)
+        return -1;
+    if (c != '[')
+        return -1;
+    if (read(0, &c, 1) <= 0)
+        return -1;
+    step_selection(m, l->count, c);
+    return 1;
+}
