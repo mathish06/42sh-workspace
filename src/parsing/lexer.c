@@ -21,7 +21,8 @@ static token_t *create_token(token_type_t type, char *value)
 
 static int is_operator(char c)
 {
-    if (c == '|' || c == '>' || c == '<' || c == ';' || c == '(' || c == ')')
+    if (c == '|' || c == '>' || c == '<' || c == ';' || c == '(' || c == ')' ||
+        c == '&')
         return 1;
     return 0;
 }
@@ -51,6 +52,21 @@ static token_t *handle_redirections(char *line, int *i)
             (*i)++;
             return create_token(TOKEN_REDIR_LEFT, NULL);
         }
+    }
+    return NULL;
+}
+
+static token_t *handle_or_and(char *line, int *i)
+{
+    if (in_the_quotes(line, *i))
+        return NULL;
+    if (line[*i] == '|' && line[*i + 1] == '|') {
+        (*i) += 2;
+        return create_token(TOKEN_OR, NULL);
+    }
+    if (line[*i] == '&' && line[*i + 1] == '&') {
+        (*i) += 2;
+        return create_token(TOKEN_AND, NULL);
     }
     return NULL;
 }
@@ -104,6 +120,9 @@ token_t *get_next_token(char *line, int *i)
     if (line[*i] == '\0')
         return NULL;
     token = handle_redirections(line, i);
+    if (token != NULL)
+        return token;
+    token = handle_or_and(line, i);
     if (token != NULL)
         return token;
     token = handle_basic_operators(line, i);

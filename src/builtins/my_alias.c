@@ -1,0 +1,87 @@
+/*
+** EPITECH PROJECT, 2025
+** my_alias.c
+** File description:
+** my_alias for the 42sh
+*/
+#include "../../include/my.h"
+
+static int needs_quotes(char *str)
+{
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == ' ' || str[i] == '\t' || str[i] == '<' ||
+            str[i] == '>' || str[i] == '|' || str[i] == '&')
+            return 1;
+    }
+    return 0;
+}
+
+static int one_arg(mysh_t *shell)
+{
+    alias_t *curr = shell->alias;
+
+    while (curr != NULL) {
+        my_putstr(curr->name);
+        my_putchar('\t');
+        my_putstr(curr->value);
+        my_putchar('\n');
+        curr = curr->next;
+    }
+    return 0;
+}
+
+static int two_args(mysh_t *shell, char **args)
+{
+    alias_t *target = NULL;
+
+    target = find_alias(shell->alias, args[1]);
+    if (target != NULL) {
+        my_putstr(target->value);
+        my_putchar('\n');
+        return 0;
+    }
+    return 0;
+}
+
+static void fill_alias_value(char *full_value, char **args)
+{
+    for (int i = 2; args[i] != NULL; i++) {
+        if (i > 2)
+            my_strcat(full_value, " ");
+        if (needs_quotes(args[i]) == 1)
+            my_strcat(full_value, "'");
+        my_strcat(full_value, args[i]);
+        if (needs_quotes(args[i]) == 1)
+            my_strcat(full_value, "'");
+    }
+}
+
+static int three_args(mysh_t *shell, char **args)
+{
+    int len = 0;
+    char *full_value;
+
+    for (int i = 2; args[i] != NULL; i++) {
+        len += my_strlen(args[i]);
+        len++;
+        if (needs_quotes(args[i]) == 1)
+            len += 2;
+    }
+    full_value = malloc(sizeof(char) * len);
+    if (full_value == NULL)
+        return 84;
+    full_value[0] = '\0';
+    fill_alias_value(full_value, args);
+    add_alias(&(shell->alias), args[1], full_value);
+    free(full_value);
+    return 0;
+}
+
+int my_alias(mysh_t *shell, char **args)
+{
+    if (args[1] == NULL)
+        return one_arg(shell);
+    if (args[2] == NULL)
+        return two_args(shell, args);
+    return three_args(shell, args);
+}

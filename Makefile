@@ -17,11 +17,9 @@ LIB_NAME =  libmy.a
 SRC     =   main.c										\
 			src/environment/manage_list.c				\
 			src/core/mysh.c								\
-			src/utils/utils.c							\
 			src/builtins/builtins.c						\
-			src/utils/error_handling.c					\
 			src/builtins/my_cd.c						\
-			src/parsing/parsing.c						\
+			src/builtins/my_set.c						\
 			src/parsing/lexer.c							\
 			src/parsing/tree.c							\
 			src/parsing/inhibitors.c					\
@@ -30,7 +28,6 @@ SRC     =   main.c										\
 			src/execution/find_command.c				\
 			src/execution/handle_builtins.c				\
 			src/execution/exec_redir.c					\
-			src/termios/termios.c						\
 			src/history/history.c						\
 			src/history/history_nav.c					\
 			src/history/history_lookup.c				\
@@ -49,6 +46,17 @@ SRC     =   main.c										\
 			src/completion/completion_path.c			\
 			src/completion/completion_first.c			\
 			src/completion/completion_fs.c
+			src/environment/expand_variables.c			\
+			src/utils/utils_part_two.c					\
+			src/utils/utils.c							\
+			src/utils/error_handling.c					\
+			src/termios/termios.c						\
+			src/alias/alias_tools.c						\
+			src/builtins/my_alias.c						\
+			src/builtins/my_unalias.c					\
+			src/execution/alias_replacement.c			\
+			src/parsing/tree_search.c					\
+			src/builtins/my_repeat.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
@@ -117,6 +125,8 @@ clean:
 	@rm -f $(OBJ)
 	@rm -f $(LIB_OBJ)
 	@rm -f *.gcno *.gcda
+	@rm -f src/*/*.gcno src/*/*.gcda
+	@rm -f tests/*.gcno tests/*.gcda
 	@rm -f vgcore.*
 	@rm -f *~
 
@@ -133,10 +143,10 @@ re: fclean all
 # ─── Tests Rules ─────────────────────────────────────────────────────────
 tests_run: fclean $(LIB_NAME)
 	$(call pretty_header, 🧪 Compiling and running unit tests 🧪)
-	@$(CC) -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
+	@gcc -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
 	@./unit_tests
-	@gcovr --exclude tests/ --gcov-executable "llvm-cov gcov"
-	@gcovr --branches --exclude tests/ --gcov-executable "llvm-cov gcov"
+	@gcovr --exclude tests/
+	@gcovr --branches --exclude tests/
 
 coverage: tests_run
 	@gcovr --html-details -o coverage.html --exclude tests/

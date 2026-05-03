@@ -80,7 +80,7 @@ static int handle_redir_double_left(char *end_world)
     return 0;
 }
 
-void exec_redir_node(ast_node_t *node, char **env, env_t **env_list)
+void exec_redir_node(ast_node_t *node, char **env, mysh_t *shell)
 {
     pid_t pid;
     int status;
@@ -97,7 +97,7 @@ void exec_redir_node(ast_node_t *node, char **env, env_t **env_list)
             exit(1);
         if (node->type == NODE_REDIR_LL && handle_redir_double_left(file) == 1)
             exit(1);
-        exec_ast(node->left, env, env_list);
+        exec_ast(node->left, env, shell);
         exit(0);
     }
     waitpid(pid, &status, 0);

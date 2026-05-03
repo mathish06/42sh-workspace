@@ -31,20 +31,6 @@ char *my_getenv(env_t *env, char *name)
     return NULL;
 }
 
-void free_command_list(command_t *head)
-{
-    command_t *tmp;
-
-    while (head != NULL) {
-        tmp = head->next;
-        free_tab(head->args);
-        free(head->in_file);
-        free(head->out_file);
-        free(head);
-        head = tmp;
-    }
-}
-
 char **tokens_to_array(token_t *head)
 {
     int count = 0;
@@ -64,4 +50,38 @@ char **tokens_to_array(token_t *head)
     }
     args[i] = NULL;
     return args;
+}
+
+static int count_exported(env_t *head)
+{
+    int count = 0;
+
+    for (env_t *curr = head; curr != NULL; curr = curr->next) {
+        if (curr->is_exported == 1)
+            count++;
+    }
+    return count;
+}
+
+char **env_list_to_tab(env_t *head)
+{
+    char **new_env = malloc(sizeof(char *) * (count_exported(head) + 1));
+    int i = 0;
+    int len;
+
+    for (env_t *curr = head; curr != NULL; curr = curr->next) {
+        if (curr->is_exported != 1)
+            continue;
+        len = my_strlen(curr->name) + 2;
+        if (curr->value != NULL)
+            len += my_strlen(curr->value);
+        new_env[i] = malloc(sizeof(char) * len);
+        my_strcpy(new_env[i], curr->name);
+        my_strcat(new_env[i], "=");
+        if (curr->value != NULL)
+            my_strcat(new_env[i], curr->value);
+        i++;
+    }
+    new_env[i] = NULL;
+    return new_env;
 }
