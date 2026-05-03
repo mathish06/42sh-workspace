@@ -50,3 +50,14 @@ static void scan_path_dir(const char *dir, const char *prefix, comp_list_t *l,
     }
     closedir(d);
 }
+
+static void iter_path_dirs(char **dirs, const char *prefix,
+    comp_list_t *l, int cap)
+{
+    int i = 0;
+
+    while (dirs != NULL && dirs[i] != NULL) {
+        scan_path_dir(dirs[i], prefix, l, cap);
+        i++;
+    }
+}
