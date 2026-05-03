@@ -61,3 +61,22 @@ static void iter_path_dirs(char **dirs, const char *prefix,
         i++;
     }
 }
+
+comp_list_t *collect_path_commands(const char *prefix)
+{
+    char *path = getenv("PATH");
+    comp_list_t *l;
+    char **dirs;
+    int cap = 1024;
+
+    if (path == NULL)
+        return NULL;
+    l = alloc_comp_list(cap);
+    if (l == NULL)
+        return NULL;
+    dirs = my_str_to_word_array(path, ":");
+    iter_path_dirs(dirs, prefix, l, cap);
+    free_tab(dirs);
+    l->entries[l->count] = NULL;
+    return l;
+}
