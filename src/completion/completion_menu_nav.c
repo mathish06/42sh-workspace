@@ -65,3 +65,17 @@ static int dispatch_key(comp_list_t *l, menu_state_t *m, char c)
     }
     return -1;
 }
+
+int menu_navigate(comp_list_t *l, menu_state_t *m)
+{
+    char c;
+    int r;
+
+    while (1) {
+        if (read(0, &c, 1) <= 0)
+            return -1;
+        r = dispatch_key(l, m, c);
+        if (r == 1 || r == 2 || r == -1)
+            return r;
+    }
+}
