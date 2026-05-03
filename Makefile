@@ -36,7 +36,19 @@ SRC     =   main.c										\
 			src/history/history_lookup.c				\
 			src/history/expand_history.c				\
 			src/history/history_io.c					\
-			src/utils/utils_part_two.c
+			src/utils/utils_part_two.c					\
+			src/utils/completion_utils.c				\
+			src/completion/completion.c					\
+			src/completion/completion_collect.c			\
+			src/completion/completion_insert.c			\
+			src/completion/completion_splice.c			\
+			src/completion/completion_menu.c			\
+			src/completion/completion_menu_nav.c		\
+			src/completion/completion_draw.c			\
+			src/completion/completion_dispatch.c		\
+			src/completion/completion_path.c			\
+			src/completion/completion_first.c			\
+			src/completion/completion_fs.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
