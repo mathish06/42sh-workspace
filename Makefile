@@ -45,9 +45,8 @@ SRC     =   main.c										\
 			src/completion/completion_dispatch.c		\
 			src/completion/completion_path.c			\
 			src/completion/completion_first.c			\
-			src/completion/completion_fs.c
+			src/completion/completion_fs.c              \
 			src/environment/expand_variables.c			\
-			src/utils/utils_part_two.c					\
 			src/utils/utils.c							\
 			src/utils/error_handling.c					\
 			src/termios/termios.c						\
