@@ -22,3 +22,14 @@ static int is_executable_in(const char *dir, const char *name)
     free(full);
     return (rc == 0);
 }
+
+static void add_candidate(const char *dir, const char *name, comp_list_t *l)
+{
+    if (already_in(l, name))
+        return;
+    if (!is_executable_in(dir, name))
+        return;
+    l->entries[l->count] = my_strdup((char *)name);
+    l->is_dir[l->count] = 0;
+    l->count++;
+}
