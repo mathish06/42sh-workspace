@@ -22,3 +22,19 @@ void clear_menu(menu_state_t *m)
     write(1, "\r", 1);
     m->printed_rows = 0;
 }
+
+static int step_selection(menu_state_t *m, int count, char dir)
+{
+    int s = m->selected;
+
+    if (dir == 'C' || dir == '\t')
+        s = (s + 1) % count;
+    if (dir == 'D')
+        s = (s - 1 + count) % count;
+    if (dir == 'B')
+        s = (s + m->cols < count) ? s + m->cols : s;
+    if (dir == 'A')
+        s = (s - m->cols >= 0) ? s - m->cols : s;
+    m->selected = s;
+    return 0;
+}
