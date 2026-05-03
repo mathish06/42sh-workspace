@@ -33,3 +33,20 @@ static void add_candidate(const char *dir, const char *name, comp_list_t *l)
     l->is_dir[l->count] = 0;
     l->count++;
 }
+
+static void scan_path_dir(const char *dir, const char *prefix, comp_list_t *l,
+    int cap)
+{
+    DIR *d = opendir(dir);
+    struct dirent *e;
+
+    if (d == NULL)
+        return;
+    e = readdir(d);
+    while (e != NULL && l->count < cap) {
+        if (e->d_name[0] != '.' && starts_with(e->d_name, prefix))
+            add_candidate(dir, e->d_name, l);
+        e = readdir(d);
+    }
+    closedir(d);
+}
