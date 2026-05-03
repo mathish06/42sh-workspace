@@ -52,3 +52,16 @@ static int read_escape_seq(comp_list_t *l, menu_state_t *m)
     step_selection(m, l->count, c);
     return 1;
 }
+
+static int dispatch_key(comp_list_t *l, menu_state_t *m, char c)
+{
+    if (c == '\n' || c == '\r')
+        return 2;
+    if (c == 27)
+        return read_escape_seq(l, m);
+    if (c == '\t') {
+        step_selection(m, l->count, '\t');
+        return 1;
+    }
+    return -1;
+}
