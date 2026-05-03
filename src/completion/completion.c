@@ -47,3 +47,19 @@ static int run_completion(line_ctx_t *lc, comp_ctx_t *ctx)
     free_comp_list(l);
     return 1;
 }
+
+int handle_tab(char *buffer, line_state_t *st)
+{
+    line_ctx_t lc = {buffer, st};
+    comp_ctx_t *ctx;
+    int r;
+
+    if (!st->interactive)
+        return 0;
+    ctx = build_ctx(buffer, st);
+    if (ctx == NULL)
+        return 0;
+    r = run_completion(&lc, ctx);
+    free_ctx(ctx);
+    return r;
+}
