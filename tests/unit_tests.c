@@ -784,7 +784,11 @@ Test(exec_pipe, basic_echo_cat, .init = redirect_all_std)
     ast_node_t left_node;
     ast_node_t right_node;
     ast_node_t pipe_node;
-    char *args_left[] = {my_strdup("echo"), my_strdup("criterion_pipe_test"), NULL};
+    char *args_left[] = {
+        my_strdup("echo"),
+        my_strdup("criterion_pipe_test"),
+        NULL
+    };
     char *args_right[] = {my_strdup("cat"), NULL};
 
     memset(&shell, 0, sizeof(mysh_t));
