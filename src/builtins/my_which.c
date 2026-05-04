@@ -6,7 +6,7 @@
 */
 #include "../../include/my.h"
 
-static int is_builtin(char *arg)
+int is_builtin(char *arg)
 {
     const char *BUILTINS[] = {
         "cd", "env", "setenv", "unsetenv", "set", "unset", "alias", "unalias",
