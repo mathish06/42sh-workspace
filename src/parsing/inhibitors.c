@@ -9,16 +9,23 @@
 
 int quotes_check(char *line)
 {
-    int in_quotes = 0;
+    char current_quote = 0;
     int i = 0;
 
     while (line[i] != '\0') {
-        if (line[i] == '\'')
-            in_quotes = (in_quotes == 0) ? 1 : 0;
+        if (current_quote != 0 && line[i] == current_quote) {
+            current_quote = 0;
+            i++;
+            continue;
+        }
+        if (current_quote == 0 && (line[i] == '\'' || line[i] == '"'))
+            current_quote = line[i];
         i++;
     }
-    if (in_quotes == 1) {
-        my_putstr("Unmatched '.\n");
+    if (current_quote != 0) {
+        my_puterr("Unmatched ");
+        write(2, &current_quote, 1);
+        my_puterr(".\n");
         return 0;
     }
     return 1;
@@ -26,15 +33,22 @@ int quotes_check(char *line)
 
 int in_the_quotes(char *line, int pos)
 {
-    int in_quotes = 0;
+    char current_quote = 0;
     int i = 0;
 
     while (i < pos) {
-        if (line[i] == '\'')
-            in_quotes = (in_quotes == 0) ? 1 : 0;
+        if (current_quote != 0 && line[i] == current_quote) {
+            current_quote = 0;
+            i++;
+            continue;
+        }
+        if (current_quote == 0 && (line[i] == '\'' || line[i] == '"'))
+            current_quote = line[i];
         i++;
     }
-    return in_quotes;
+    if (current_quote != 0)
+        return 1;
+    return 0;
 }
 
 char *remove_quotes(char *word)
@@ -46,7 +60,7 @@ char *remove_quotes(char *word)
     if (result == NULL)
         return NULL;
     while (word[i] != '\0') {
-        if (word[i] != '\'') {
+        if (word[i] != '\'' && word[i] != '"') {
             result[j] = word[i];
             j++;
         }

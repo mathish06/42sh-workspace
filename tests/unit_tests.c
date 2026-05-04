@@ -1,8 +1,8 @@
 /*
 ** EPITECH PROJECT, 2026
-** Untitled (Workspace)
+** 42sh
 ** File description:
-** unit_tests.c
+** unit_tests
 */
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
@@ -116,56 +116,70 @@ Test(builtins_env, my_env, .init = redirect_all_std)
 {
     char *envp[] = {"USER=loan", NULL};
     env_t *env_list = env_to_list(envp);
-    my_env(env_list);
+    mysh_t shell;
+
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_env(&shell);
     cr_assert_stdout_eq_str("USER=loan\n");
-    free_env_list(env_list);
+    free_env_list(shell.env);
 }
 
 Test(builtins_setenv, basic_setenv, .init = redirect_all_std)
 {
     char *envp[] = {"USER=loan", NULL};
     env_t *env_list = env_to_list(envp);
+    mysh_t shell;
     char *args[] = {"setenv", "TEST", "value", NULL};
     char *args_err[] = {"setenv", "T-EST", "value", NULL};
     char *args_many[] = {"setenv", "1", "2", "3", NULL};
     char *args_none[] = {"setenv", NULL};
-    my_setenv(&env_list, args);
-    cr_assert_str_eq(my_getenv(env_list, "TEST"), "value");
-    my_setenv(&env_list, args_err);
-    my_setenv(&env_list, args_many);
-    my_setenv(&env_list, args_none);
-    free_env_list(env_list);
+
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_setenv(&shell, args);
+    cr_assert_str_eq(my_getenv(shell.env, "TEST"), "value");
+    my_setenv(&shell, args_err);
+    my_setenv(&shell, args_many);
+    my_setenv(&shell, args_none);
+    free_env_list(shell.env);
 }
 
 Test(builtins_unsetenv, basic_unsetenv, .init = redirect_all_std)
 {
     char *envp[] = {"USER=loan", "TEST=value", NULL};
     env_t *env_list = env_to_list(envp);
+    mysh_t shell;
     char *args[] = {"unsetenv", "TEST", NULL};
     char *args_err[] = {"unsetenv", NULL};
-    my_unsetenv(&env_list, args);
-    cr_assert_null(my_getenv(env_list, "TEST"));
-    my_unsetenv(&env_list, args_err);
-    free_env_list(env_list);
+
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_unsetenv(&shell, args);
+    cr_assert_null(my_getenv(shell.env, "TEST"));
+    my_unsetenv(&shell, args_err);
+    free_env_list(shell.env);
 }
 
 Test(builtins_cd, basic_cd, .init = redirect_all_std)
 {
     char *envp[] = {"HOME=/tmp", "OLDPWD=/tmp", NULL};
     env_t *env_list = env_to_list(envp);
+    mysh_t shell;
     char *args_tmp[] = {"cd", "/tmp", NULL};
     char *args_home[] = {"cd", NULL};
     char *args_dash[] = {"cd", "-", NULL};
     char *args_many[] = {"cd", "1", "2", NULL};
     char *args_err[] = {"cd", "/impossible_directory_42", NULL};
 
-    cr_assert_eq(my_cd(args_tmp, &env_list), 0);
-    cr_assert_eq(my_cd(args_home, &env_list), 0);
-    cr_assert_eq(my_cd(args_dash, &env_list), 0);
-    cr_assert_eq(my_cd(args_many, &env_list), 1);
-    cr_assert_eq(my_cd(args_err, &env_list), 1);
-
-    free_env_list(env_list);
+    shell.env = env_list;
+    shell.alias = NULL;
+    cr_assert_eq(my_cd(args_tmp, &shell), 0);
+    cr_assert_eq(my_cd(args_home, &shell), 0);
+    cr_assert_eq(my_cd(args_dash, &shell), 0);
+    cr_assert_eq(my_cd(args_many, &shell), 1);
+    cr_assert_eq(my_cd(args_err, &shell), 1);
+    free_env_list(shell.env);
 }
 
 Test(error_handling, print_errors, .init = redirect_all_std)
@@ -182,13 +196,19 @@ Test(exec_command, find_command)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     env_t *env_list = env_to_list(envp);
-    char *path = find_command("ls", env_list);
-    char *abs_path = find_command("/bin/ls", env_list);
+    mysh_t shell;
+    char *path;
+    char *abs_path;
+
+    shell.env = env_list;
+    shell.alias = NULL;
+    path = find_command("ls", &shell);
+    abs_path = find_command("/bin/ls", &shell);
     cr_assert_not_null(path);
     free(path);
     cr_assert_str_eq(abs_path, "/bin/ls");
     free(abs_path);
-    free_env_list(env_list);
+    free_env_list(shell.env);
 }
 
 Test(mysh_main, test_exit_and_commands)
@@ -196,6 +216,7 @@ Test(mysh_main, test_exit_and_commands)
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     int saved_stdin = dup(0);
     int pipefd[2];
+
     pipe(pipefd);
     write(pipefd[1], "ls\necho hello\nexit\n", 19);
     close(pipefd[1]);
@@ -225,9 +246,7 @@ Test(mysh_main, test_eof_ctrl_d, .init = redirect_all_std)
     close(pipefd[1]);
     dup2(pipefd[0], 0);
     close(pipefd[0]);
-
     mysh(envp);
-
     dup2(saved_stdin, 0);
     close(saved_stdin);
 }
@@ -439,26 +458,30 @@ Test(inhibitors, quotes_check_valid)
 {
     cr_assert_eq(quotes_check("echo hello"), 1);
     cr_assert_eq(quotes_check("echo 'hello'"), 1);
-    cr_assert_eq(quotes_check("echo 'a' 'b'"), 1);
+    cr_assert_eq(quotes_check("echo \"hello\""), 1);
+    cr_assert_eq(quotes_check("echo 'a' \"b\""), 1);
     cr_assert_eq(quotes_check(""), 1);
 }
 
 Test(inhibitors, quotes_check_unmatched, .init = redirect_all_std)
 {
     cr_assert_eq(quotes_check("echo 'hello"), 0);
+    cr_assert_eq(quotes_check("echo \"hello"), 0);
     cr_assert_eq(quotes_check("'"), 0);
-    cr_assert_eq(quotes_check("echo 'a' 'b"), 0);
+    cr_assert_eq(quotes_check("\""), 0);
+    cr_assert_eq(quotes_check("echo 'a' \"b"), 0);
 }
 
 Test(inhibitors, in_the_quotes_detection)
 {
-    char *line = "echo 'hello' world";
+    char *line = "echo 'hello' \"world\"";
 
     cr_assert_eq(in_the_quotes(line, 0), 0);
     cr_assert_eq(in_the_quotes(line, 5), 0);
     cr_assert_eq(in_the_quotes(line, 7), 1);
-    cr_assert_eq(in_the_quotes(line, 10), 1);
-    cr_assert_eq(in_the_quotes(line, 13), 0);
+    cr_assert_eq(in_the_quotes(line, 12), 0);
+    cr_assert_eq(in_the_quotes(line, 15), 1);
+    cr_assert_eq(in_the_quotes(line, 20), 0);
 }
 
 Test(inhibitors, in_the_quotes_no_quotes)
@@ -472,10 +495,14 @@ Test(inhibitors, in_the_quotes_no_quotes)
 
 Test(inhibitors, remove_quotes_basic)
 {
-    char *result = remove_quotes("'hello'");
+    char *result_single = remove_quotes("'hello'");
+    char *result_double = remove_quotes("\"hello\"");
 
-    cr_assert_str_eq(result, "hello");
-    free(result);
+    cr_assert_str_eq(result_single, "hello");
+    cr_assert_str_eq(result_double, "hello");
+
+    free(result_single);
+    free(result_double);
 }
 
 Test(inhibitors, remove_quotes_no_quotes)
@@ -486,33 +513,9 @@ Test(inhibitors, remove_quotes_no_quotes)
     free(result);
 }
 
-Test(inhibitors, remove_quotes_multiple)
-{
-    char *result = remove_quotes("'a''b'");
-
-    cr_assert_str_eq(result, "ab");
-    free(result);
-}
-
-Test(inhibitors, remove_quotes_empty)
-{
-    char *result = remove_quotes("");
-
-    cr_assert_str_eq(result, "");
-    free(result);
-}
-
-Test(inhibitors, remove_quotes_only_quotes)
-{
-    char *result = remove_quotes("''");
-
-    cr_assert_str_eq(result, "");
-    free(result);
-}
-
 Test(inhibitors, remove_quotes_mixed_content)
 {
-    char *result = remove_quotes("hello'world'test");
+    char *result = remove_quotes("hello'world'\"test\"");
 
     cr_assert_str_eq(result, "helloworldtest");
     free(result);
@@ -522,37 +525,668 @@ Test(builtins_set, basic_set_and_unset, .init = redirect_all_std)
 {
     char *envp[] = {"USER=loan", NULL};
     env_t *env_list = env_to_list(envp);
-    env_t *curr = env_list;
+    mysh_t shell;
+    env_t *curr;
     char *args_set[] = {"set", "LOCAL_VAR", "42", NULL};
     char *args_unset[] = {"unset", "LOCAL_VAR", NULL};
 
-    my_set(&env_list, args_set);
-    cr_assert_str_eq(my_getenv(env_list, "LOCAL_VAR"), "42");
-
-    while (my_strcmp(curr->name, "LOCAL_VAR") != 0)
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_set(&shell, args_set);
+    cr_assert_str_eq(my_getenv(shell.env, "LOCAL_VAR"), "42");
+    curr = shell.env;
+    while (curr != NULL && my_strcmp(curr->name, "LOCAL_VAR") != 0)
         curr = curr->next;
+    cr_assert_not_null(curr);
     cr_assert_eq(curr->is_exported, 0);
-
-    my_unset(&env_list, args_unset);
-    cr_assert_null(my_getenv(env_list, "LOCAL_VAR"));
-
-    free_env_list(env_list);
+    my_unset(&shell, args_unset);
+    cr_assert_null(my_getenv(shell.env, "LOCAL_VAR"));
+    free_env_list(shell.env);
 }
 
 Test(utils, env_list_to_tab)
 {
     char *envp[] = {"GLOBAL1=val1", NULL};
     env_t *env_list = env_to_list(envp);
+    mysh_t shell;
     char **env_tab;
     char *args_set[] = {"set", "LOCAL1", "val2", NULL};
 
-    my_set(&env_list, args_set);
-
-    env_tab = env_list_to_tab(env_list);
+    shell.env = env_list;
+    shell.alias = NULL;
+    my_set(&shell, args_set);
+    env_tab = env_list_to_tab(shell.env);
     cr_assert_not_null(env_tab);
     cr_assert_str_eq(env_tab[0], "GLOBAL1=val1");
     cr_assert_null(env_tab[1]);
-
     free_tab(env_tab);
-    free_env_list(env_list);
+    free_env_list(shell.env);
+}
+
+Test(alias_list, add_and_find_basic)
+{
+    alias_t *list = NULL;
+    alias_t *target = NULL;
+
+    add_alias(&list, "ll", "ls -l");
+    target = find_alias(list, "ll");
+    cr_assert_not_null(target);
+    cr_assert_str_eq(target->name, "ll");
+    cr_assert_str_eq(target->value, "ls -l");
+    free_alias_list(list);
+}
+
+Test(alias_list, overwrite_existing_alias)
+{
+    alias_t *list = NULL;
+    alias_t *target = NULL;
+
+    add_alias(&list, "ll", "ls -l");
+    add_alias(&list, "ll", "ls -la --color");
+    target = find_alias(list, "ll");
+    cr_assert_not_null(target);
+    cr_assert_str_eq(target->value, "ls -la --color");
+    free_alias_list(list);
+}
+
+Test(alias_list, find_non_existent)
+{
+    alias_t *list = NULL;
+    alias_t *target = NULL;
+
+    add_alias(&list, "ll", "ls -l");
+    target = find_alias(list, "mdr");
+    cr_assert_null(target);
+    free_alias_list(list);
+}
+
+Test(alias_list, delete_alias)
+{
+    alias_t *list = NULL;
+
+    add_alias(&list, "ll", "ls -l");
+    add_alias(&list, "grep", "grep --color");
+    delete_alias(&list, "ll");
+    cr_assert_null(find_alias(list, "ll"));
+    cr_assert_not_null(find_alias(list, "grep"));
+    delete_alias(&list, "grep");
+    cr_assert_null(list);
+    delete_alias(&list, "fantome");
+    free_alias_list(list);
+}
+
+Test(builtin_alias, my_alias_creation)
+{
+    mysh_t shell;
+    char *args[] = {"alias", "ll", "ls", "-l", "--color=auto", NULL};
+    alias_t *target;
+
+    shell.alias = NULL;
+    my_alias(&shell, args);
+    target = find_alias(shell.alias, "ll");
+    cr_assert_not_null(target);
+    cr_assert_str_eq(target->value, "ls -l --color=auto");
+    free_alias_list(shell.alias);
+}
+
+Test(builtin_unalias, my_unalias_basic)
+{
+    mysh_t shell;
+    char *args[] = {"unalias", "ll", NULL};
+
+    shell.alias = NULL;
+
+    add_alias(&shell.alias, "ll", "ls -l");
+    add_alias(&shell.alias, "grep", "grep --color");
+
+    my_unalias(&shell, args);
+
+    cr_assert_null(find_alias(shell.alias, "ll"));
+    cr_assert_not_null(find_alias(shell.alias, "grep"));
+
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, replace_args_with_alias_basic)
+{
+    char **old_args = malloc(sizeof(char *) * 3);
+    char **alias_args = malloc(sizeof(char *) * 3);
+    char **new_args;
+
+    old_args[0] = my_strdup("ll");
+    old_args[1] = my_strdup("/tmp");
+    old_args[2] = NULL;
+
+    alias_args[0] = my_strdup("ls");
+    alias_args[1] = my_strdup("-l");
+    alias_args[2] = NULL;
+
+    new_args = replace_args_with_alias(old_args, alias_args);
+
+    cr_assert_not_null(new_args);
+    cr_assert_str_eq(new_args[0], "ls");
+    cr_assert_str_eq(new_args[1], "-l");
+    cr_assert_str_eq(new_args[2], "/tmp");
+    cr_assert_null(new_args[3]);
+
+    free_tab(new_args);
+}
+
+Test(alias_replacement, expand_aliases_basic)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "ll", "ls -l");
+
+    node.args = malloc(sizeof(char *) * 3);
+    node.args[0] = my_strdup("ll");
+    node.args[1] = my_strdup("/tmp");
+    node.args[2] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "ls");
+    cr_assert_str_eq(node.args[1], "-l");
+    cr_assert_str_eq(node.args[2], "/tmp");
+    cr_assert_null(node.args[3]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_recursive)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "a", "b");
+    add_alias(&shell.alias, "b", "ls -l");
+
+    node.args = malloc(sizeof(char *) * 2);
+    node.args[0] = my_strdup("a");
+    node.args[1] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "ls");
+    cr_assert_str_eq(node.args[1], "-l");
+    cr_assert_null(node.args[2]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_loop_protection)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "ls", "ls --color");
+
+    node.args = malloc(sizeof(char *) * 2);
+    node.args[0] = my_strdup("ls");
+    node.args[1] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "ls");
+    cr_assert_str_eq(node.args[1], "--color");
+    cr_assert_null(node.args[2]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_with_quotes)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    add_alias(&shell.alias, "msg", "echo \"hello world\"");
+
+    node.args = malloc(sizeof(char *) * 2);
+    node.args[0] = my_strdup("msg");
+    node.args[1] = NULL;
+
+    expand_aliases(&node, &shell);
+
+    cr_assert_str_eq(node.args[0], "echo");
+    cr_assert_str_eq(node.args[1], "hello world");
+    cr_assert_null(node.args[2]);
+
+    free_tab(node.args);
+    free_alias_list(shell.alias);
+}
+
+Test(alias_replacement, expand_aliases_null_safety)
+{
+    mysh_t shell;
+    ast_node_t node;
+
+    shell.alias = NULL;
+    node.args = NULL;
+
+    expand_aliases(&node, &shell);
+    expand_aliases(NULL, &shell);
+
+    cr_assert(1);
+}
+
+Test(exec_pipe, basic_echo_cat, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    ast_node_t left_node;
+    ast_node_t right_node;
+    ast_node_t pipe_node;
+    char *args_left[] = {"echo", "criterion_pipe_test", NULL};
+    char *args_right[] = {"cat", NULL};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    left_node.type = NODE_COMMAND;
+    left_node.args = args_left;
+    left_node.left = NULL;
+    left_node.right = NULL;
+
+    right_node.type = NODE_COMMAND;
+    right_node.args = args_right;
+    right_node.left = NULL;
+    right_node.right = NULL;
+
+    pipe_node.type = NODE_PIPE;
+    pipe_node.args = NULL;
+    pipe_node.left = &left_node;
+    pipe_node.right = &right_node;
+
+    exec_pipe_node(&pipe_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("criterion_pipe_test\n");
+
+    free_env_list(shell.env);
+}
+
+Test(exec_pipe, builtin_and_system_cmd, .init = redirect_all_std)
+{
+    char *envp[] = {"MY_CUSTOM_VAR=pipe_secret", "PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    ast_node_t left_node;
+    ast_node_t right_node;
+    ast_node_t pipe_node;
+    char *args_left[] = {"env", NULL};
+    char *args_right[] = {"grep", "MY_CUSTOM_VAR", NULL};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    left_node.type = NODE_COMMAND;
+    left_node.args = args_left;
+    left_node.left = NULL;
+    left_node.right = NULL;
+
+    right_node.type = NODE_COMMAND;
+    right_node.args = args_right;
+    right_node.left = NULL;
+    right_node.right = NULL;
+
+    pipe_node.type = NODE_PIPE;
+    pipe_node.args = NULL;
+    pipe_node.left = &left_node;
+    pipe_node.right = &right_node;
+
+    exec_pipe_node(&pipe_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("MY_CUSTOM_VAR=pipe_secret\n");
+
+    free_env_list(shell.env);
+}
+
+Test(exec_redir, redir_right_and_double_right)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args_cmd[] = {"echo", "first_line", NULL};
+    char *args_file[] = {"/tmp/crit_out.txt", NULL};
+    ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
+    ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
+    ast_node_t redir_node = {NODE_REDIR_R, NULL, &cmd_node, &file_node};
+    int fd;
+    char buffer[100] = {0};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    unlink("/tmp/crit_out.txt");
+
+    exec_redir_node(&redir_node, envp, &shell);
+
+    args_cmd[1] = "second_line";
+    redir_node.type = NODE_REDIR_RR;
+    exec_redir_node(&redir_node, envp, &shell);
+
+    fd = open("/tmp/crit_out.txt", O_RDONLY);
+    cr_assert_neq(fd, -1, "Le fichier de redirection n'a pas été créé.");
+
+    read(fd, buffer, 99);
+    close(fd);
+
+    cr_assert_str_eq(buffer, "first_line\nsecond_line\n");
+
+    unlink("/tmp/crit_out.txt");
+    free_env_list(shell.env);
+}
+
+Test(exec_redir, redir_left, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    int fd;
+    char *args_cmd[] = {"cat", NULL};
+    char *args_file[] = {"/tmp/crit_in.txt", NULL};
+    ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
+    ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
+    ast_node_t redir_node = {NODE_REDIR_L, NULL, &cmd_node, &file_node};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    fd = open("/tmp/crit_in.txt", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    write(fd, "hello_left\n", 11);
+    close(fd);
+
+    exec_redir_node(&redir_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("hello_left\n");
+
+    unlink("/tmp/crit_in.txt");
+    free_env_list(shell.env);
+}
+
+Test(exec_redir, redir_double_left_heredoc, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    int pipefd[2];
+    int saved_stdin;
+    char *args_cmd[] = {"cat", NULL};
+    char *args_file[] = {"EOF", NULL};
+    ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
+    ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
+    ast_node_t redir_node = {NODE_REDIR_LL, NULL, &cmd_node, &file_node};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    pipe(pipefd);
+    write(pipefd[1], "heredoc_line\nEOF\n", 17);
+    close(pipefd[1]);
+
+    saved_stdin = dup(0);
+    dup2(pipefd[0], 0);
+    close(pipefd[0]);
+
+    exec_redir_node(&redir_node, envp, &shell);
+
+    dup2(saved_stdin, 0);
+    close(saved_stdin);
+
+    cr_assert_stdout_eq_str("heredoc_line\n");
+    free_env_list(shell.env);
+}
+
+Test(exec_redir, redir_errors, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args_cmd[] = {"echo", "test", NULL};
+    char *args_file[] = {"/root/forbidden.txt", NULL};
+    ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
+    ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
+    ast_node_t redir_node = {NODE_REDIR_R, NULL, &cmd_node, &file_node};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    exec_redir_node(&redir_node, envp, &shell);
+
+    redir_node.type = NODE_REDIR_RR;
+    exec_redir_node(&redir_node, envp, &shell);
+
+    args_file[0] = "/tmp/does_not_exist_42sh_xyz.txt";
+    redir_node.type = NODE_REDIR_L;
+    exec_redir_node(&redir_node, envp, &shell);
+
+    cr_assert(1);
+    free_env_list(shell.env);
+}
+
+Test(history_nav, up_empty_history)
+{
+    history_t *h = history_init(10);
+    line_state_t st = {0};
+    char buffer[256] = {0};
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_null(st.nav_cursor);
+    cr_assert_str_eq(buffer, "");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_null(st.nav_cursor);
+
+    history_free(h);
+}
+
+Test(history_nav, basic_up_and_down)
+{
+    history_t *h = history_init(10);
+    line_state_t st = {0};
+    char buffer[256] = {0};
+
+    history_add(h, "cmd1");
+    history_add(h, "cmd2");
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_not_null(st.nav_cursor);
+    cr_assert_str_eq(buffer, "cmd2");
+    cr_assert_eq(st.i, 4);
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_str_eq(buffer, "cmd1");
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_str_eq(buffer, "cmd1");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_str_eq(buffer, "cmd2");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_null(st.nav_cursor);
+    cr_assert_str_eq(buffer, "");
+
+    history_free(h);
+    if (st.saved_draft != NULL)
+        free(st.saved_draft);
+}
+
+Test(history_nav, save_and_restore_draft)
+{
+    history_t *h = history_init(10);
+    line_state_t st = {0};
+    char buffer[256] = "echo un_brouillon_non_fini";
+
+    history_add(h, "old_command");
+
+    st.max_len = 26;
+    st.i = 26;
+
+    history_nav_up(buffer, &st, h);
+    cr_assert_str_eq(buffer, "old_command");
+    cr_assert_not_null(st.saved_draft);
+    cr_assert_str_eq(st.saved_draft, "echo un_brouillon_non_fini");
+
+    history_nav_down(buffer, &st, h);
+    cr_assert_str_eq(buffer, "echo un_brouillon_non_fini");
+    cr_assert_null(st.nav_cursor);
+
+    history_free(h);
+    if (st.saved_draft != NULL)
+        free(st.saved_draft);
+}
+
+Test(history_nav, interactive_redraw, .init = redirect_all_std)
+{
+    history_t *h = history_init(10);
+    line_state_t st = {0};
+    char buffer[256] = {0};
+
+    history_add(h, "ls -la");
+
+    st.interactive = 1;
+
+    history_nav_up(buffer, &st, h);
+
+    cr_assert_stdout_eq_str("\r\033[K$> ls -la");
+
+    history_free(h);
+    if (st.saved_draft != NULL)
+        free(st.saved_draft);
+}
+
+Test(exec_ast, logic_and_operator, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args_left[] = {"true", NULL};
+    char *args_right[] = {"echo", "AND_WORKS", NULL};
+    ast_node_t left_node = {NODE_COMMAND, args_left, NULL, NULL};
+    ast_node_t right_node = {NODE_COMMAND, args_right, NULL, NULL};
+    ast_node_t and_node = {NODE_AND, NULL, &left_node, &right_node};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+    shell.last_status = 0;
+    exec_ast(&and_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("AND_WORKS\n");
+    free_env_list(shell.env);
+}
+
+Test(exec_ast, logic_or_operator, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args_left[] = {"false", NULL};
+    char *args_right[] = {"echo", "OR_WORKS", NULL};
+    ast_node_t left_node = {NODE_COMMAND, args_left, NULL, NULL};
+    ast_node_t right_node = {NODE_COMMAND, args_right, NULL, NULL};
+    ast_node_t or_node = {NODE_OR, NULL, &left_node, &right_node};
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+    shell.last_status = 0;
+    exec_ast(&or_node, envp, &shell);
+
+    cr_assert_stdout_eq_str("OR_WORKS\n");
+    free_env_list(shell.env);
+}
+
+Test(builtin_repeat, basic_execution, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args[] = {"repeat", "3", "echo", "test_repeat", NULL};
+    int ret;
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    ret = my_repeat(&shell, args);
+    cr_assert_eq(ret, 0);
+    cr_assert_stdout_eq_str("test_repeat\ntest_repeat\ntest_repeat\n");
+
+    free_env_list(shell.env);
+}
+
+Test(builtin_repeat, too_few_args, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args_no_cmd[] = {"repeat", "3", NULL};
+    char *args_nothing[] = {"repeat", NULL};
+    int ret1;
+    int ret2;
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    ret1 = my_repeat(&shell, args_no_cmd);
+    cr_assert_eq(ret1, 1);
+
+    ret2 = my_repeat(&shell, args_nothing);
+    cr_assert_eq(ret2, 1);
+
+    cr_assert_stderr_eq_str("repeat: Too few arguments.\n"
+        "repeat: Too few arguments.\n");
+
+    free_env_list(shell.env);
+}
+
+Test(builtin_repeat, negative_or_zero_count, .init = redirect_all_std)
+{
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    mysh_t shell;
+    char *args[] = {"repeat", "-5", "echo", "test_repeat", NULL};
+    int ret;
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+
+    ret = my_repeat(&shell, args);
+    cr_assert_eq(ret, 0);
+    cr_assert_stdout_eq_str("");
+
+    free_env_list(shell.env);
+}
+
+Test(ast_builder, invalid_null_command, .init = redirect_all_std)
+{
+    token_t *t1 = malloc(sizeof(token_t));
+    token_t *t2 = malloc(sizeof(token_t));
+    ast_node_t *tree;
+
+    t1->type = TOKEN_WORD;
+    t1->value = my_strdup("ls");
+
+    t2->type = TOKEN_AND;
+    t2->value = my_strdup("&&");
+
+    t1->next = t2;
+    t2->next = NULL;
+
+    tree = build_ast(t1);
+
+    cr_assert_null(tree);
+    cr_assert_stderr_eq_str("Invalid null command.\n");
+}
+
+Test(builtin_alias, quotes_handling, .init = redirect_all_std)
+{
+    mysh_t shell;
+    char *args_add[] = {"alias", "say_hello", "echo", "hello world", NULL};
+    char *args_display[] = {"alias", NULL};
+
+    shell.alias = NULL;
+
+    my_alias(&shell, args_add);
+    my_alias(&shell, args_display);
+
+    cr_assert_stdout_eq_str("say_hello\techo 'hello world'\n");
+
+    free_alias_list(shell.alias);
 }

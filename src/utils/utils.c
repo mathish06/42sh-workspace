@@ -123,6 +123,8 @@ static int handle_arrows(char *buffer, line_state_t *state, char c,
 static int process_input_char(char *buffer, line_state_t *state, char c,
     history_t *hist)
 {
+    if (c == '\t' && handle_tab(buffer, state) == 1)
+        return 0;
     if (handle_backspace(buffer, state, c) == 1
         || handle_arrows(buffer, state, c, hist) == 1)
         return 0;
@@ -133,7 +135,7 @@ static int process_input_char(char *buffer, line_state_t *state, char c,
 
 char *my_getline(history_t *hist)
 {
-    char *buffer = malloc(sizeof(char) * 1024);
+    char *buffer = malloc(sizeof(char) * LINE_BUF_CAP);
     line_state_t state = {0, 0, isatty(0), NULL, NULL};
     char c;
     int txt = 0;
@@ -152,4 +154,15 @@ char *my_getline(history_t *hist)
             return buffer;
         }
     }
+}
+
+int my_puterr(char const *str)
+{
+    int i = 0;
+
+    while (str[i] != '\0') {
+        write(2, &str[i], 1);
+        i++;
+    }
+    return 0;
 }

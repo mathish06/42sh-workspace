@@ -7,14 +7,14 @@
 
 #include "../../include/my.h"
 
-int my_unset(env_t **env, char **args)
+int my_unset(mysh_t *shell, char **args)
 {
-    return my_unsetenv(env, args);
+    return my_unsetenv(shell, args);
 }
 
-static void display_all_env(env_t *env)
+static void display_all_env(mysh_t *shell)
 {
-    env_t *curr = env;
+    env_t *curr = shell->env;
 
     while (curr != NULL) {
         my_putstr(curr->name);
@@ -27,9 +27,9 @@ static void display_all_env(env_t *env)
     }
 }
 
-static void force_local_flag(env_t **env, char *key)
+static void force_local_flag(mysh_t *shell, char *key)
 {
-    env_t *curr = *env;
+    env_t *curr = shell->env;
 
     while (curr != NULL) {
         if (my_strcmp(curr->name, key) == 0) {
@@ -40,7 +40,7 @@ static void force_local_flag(env_t **env, char *key)
     }
 }
 
-static void parse_and_set(env_t **env, char **args)
+static void parse_and_set(mysh_t *shell, char **args)
 {
     char *val = NULL;
     char *fake_args[4] = {"setenv", args[1], NULL, NULL};
@@ -50,16 +50,16 @@ static void parse_and_set(env_t **env, char **args)
     else if (args[2] != NULL)
         val = args[2];
     fake_args[2] = val;
-    if (my_setenv(env, fake_args) == 0)
-        force_local_flag(env, args[1]);
+    if (my_setenv(shell, fake_args) == 0)
+        force_local_flag(shell, args[1]);
 }
 
-int my_set(env_t **env, char **args)
+int my_set(mysh_t *shell, char **args)
 {
     if (args[1] == NULL) {
-        display_all_env(*env);
+        display_all_env(shell);
         return 0;
     }
-    parse_and_set(env, args);
+    parse_and_set(shell, args);
     return 0;
 }

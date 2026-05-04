@@ -20,7 +20,6 @@ SRC     =   main.c										\
 			src/builtins/builtins.c						\
 			src/builtins/my_cd.c						\
 			src/builtins/my_set.c						\
-			src/parsing/parsing.c						\
 			src/parsing/lexer.c							\
 			src/parsing/tree.c							\
 			src/parsing/inhibitors.c					\
@@ -35,9 +34,28 @@ SRC     =   main.c										\
 			src/history/expand_history.c				\
 			src/history/history_io.c					\
 			src/utils/utils_part_two.c					\
+			src/utils/completion_utils.c				\
+			src/completion/completion.c					\
+			src/completion/completion_collect.c			\
+			src/completion/completion_insert.c			\
+			src/completion/completion_splice.c			\
+			src/completion/completion_menu.c			\
+			src/completion/completion_menu_nav.c		\
+			src/completion/completion_draw.c			\
+			src/completion/completion_dispatch.c		\
+			src/completion/completion_path.c			\
+			src/completion/completion_first.c			\
+			src/completion/completion_fs.c              \
+			src/environment/expand_variables.c			\
 			src/utils/utils.c							\
 			src/utils/error_handling.c					\
 			src/termios/termios.c						\
+			src/alias/alias_tools.c						\
+			src/builtins/my_alias.c						\
+			src/builtins/my_unalias.c					\
+			src/execution/alias_replacement.c			\
+			src/parsing/tree_search.c					\
+			src/builtins/my_repeat.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
@@ -107,6 +125,8 @@ clean:
 	@rm -f $(OBJ)
 	@rm -f $(LIB_OBJ)
 	@rm -f *.gcno *.gcda
+	@rm -f src/*/*.gcno src/*/*.gcda
+	@rm -f tests/*.gcno tests/*.gcda
 	@rm -f vgcore.*
 	@rm -f *~
 
@@ -126,7 +146,7 @@ tests_run: fclean $(LIB_NAME)
 	@gcc -o unit_tests $(filter-out main.c, $(SRC)) $(TESTS_SRC) $(CFLAGS) $(LDFLAGS) $(TESTS_FLAGS)
 	@./unit_tests
 	@gcovr --exclude tests/
-	@gcovr --txt-metric branch --exclude tests/
+	@gcovr --branches --exclude tests/
 
 coverage: tests_run
 	@gcovr --html-details -o coverage.html --exclude tests/

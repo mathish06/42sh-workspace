@@ -52,15 +52,18 @@ static char *search_in_paths(char **path_tab, char *cmd)
     return NULL;
 }
 
-char *find_command(char *cmd, env_t *env)
+char *find_command(char *cmd, mysh_t *shell)
 {
     char *result;
     char **path_tab;
     char *full_path;
 
-    if (has_slash(cmd))
-        return my_strdup(cmd);
-    result = my_getenv(env, "PATH");
+    if (has_slash(cmd)) {
+        if (access(cmd, X_OK) == 0)
+            return my_strdup(cmd);
+        return NULL;
+    }
+    result = my_getenv(shell->env, "PATH");
     if (result == NULL)
         return NULL;
     path_tab = my_str_to_word_array(result, ":");

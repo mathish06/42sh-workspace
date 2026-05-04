@@ -52,6 +52,7 @@ static char *build_history_path(env_t *env)
 static char *prepare_line(char *line, mysh_t *shell)
 {
     char *expanded;
+    char *with_vars;
 
     expanded = expand_history_events(line, shell->history);
     if (expanded == NULL)
@@ -60,8 +61,14 @@ static char *prepare_line(char *line, mysh_t *shell)
         my_putstr(expanded);
         my_putstr("\n");
     }
+    with_vars = expand_variable(expanded, shell);
+    if (with_vars == NULL) {
+        free(expanded);
+        return NULL;
+    }
     history_add(shell->history, expanded);
-    return expanded;
+    free(expanded);
+    return with_vars;
 }
 
 static int process_ast(char *expanded, mysh_t *shell, char **env)
@@ -76,7 +83,7 @@ static int process_ast(char *expanded, mysh_t *shell, char **env)
         return 0;
     ast = build_ast(tokens);
     if (ast != NULL) {
-        exec_ast(ast, env, &shell->env);
+        exec_ast(ast, env, shell);
         free_ast(ast);
     }
     return 0;
@@ -122,6 +129,7 @@ int mysh(char **env)
     mysh_t shell;
     char *histpath;
 
+    shell.alias = NULL;
     shell.env = env_to_list(env);
     shell.history = history_init(500);
     histpath = build_history_path(shell.env);
