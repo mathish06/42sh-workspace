@@ -49,7 +49,8 @@ LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_strdup.c							\
 			lib/my/my_strlen.c							\
 			lib/my/my_strncpy.c							\
-			lib/my/my_strndup.c
+			lib/my/my_strndup.c							\
+			lib/my/my_itoa.c
 
 # 3. OBJETS
 TESTS_SRC = tests/unit_tests.c
