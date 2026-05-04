@@ -55,7 +55,8 @@ SRC     =   main.c										\
 			src/builtins/my_unalias.c					\
 			src/execution/alias_replacement.c			\
 			src/parsing/tree_search.c					\
-			src/builtins/my_repeat.c
+			src/builtins/my_repeat.c					\
+			src/builtins/my_which.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
