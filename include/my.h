@@ -72,6 +72,8 @@ token_t *find_any_redir(token_t *head);
 ast_node_t *create_leaf_node(token_t *head);
 
 char *find_command(char *cmd, mysh_t *shell);
+int has_slash(char *str);
+char *try_path_composition(char *dir, char *cmd);
 void exec_node_command(ast_node_t *node, char **env, mysh_t *shell);
 void exec_ast(ast_node_t *node, char **env, mysh_t *shell);
 void exec_pipe_node(ast_node_t *node, char **env, mysh_t *shell);
@@ -98,6 +100,10 @@ char **replace_args_with_alias(char **old_args, char **alias_args);
 void expand_aliases(ast_node_t *node, mysh_t *shell);
 
 int my_repeat(mysh_t *shell, char **args);
+int my_which(mysh_t *shell, char **args);
+int my_where(mysh_t *shell, char **args);
+int is_builtin(char *arg);
+
 int handle_tab(char *buffer, line_state_t *st);
 void get_word_bounds(char *buffer, int i, int *start, int *end);
 comp_ctx_t *build_ctx(char *buffer, line_state_t *st);

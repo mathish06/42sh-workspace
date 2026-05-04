@@ -30,7 +30,7 @@ int is_first_word(char *buffer, int word_start)
     return 1;
 }
 
-static int has_slash(const char *s)
+static int has_slash_completion(const char *s)
 {
     int i = 0;
 
@@ -46,7 +46,7 @@ static int should_complete_command(char *buffer, comp_ctx_t *ctx)
 {
     if (!is_first_word(buffer, ctx->word_start))
         return 0;
-    if (has_slash(ctx->prefix) || my_strcmp(ctx->dir, ".") != 0)
+    if (has_slash_completion(ctx->prefix) || my_strcmp(ctx->dir, ".") != 0)
         return 0;
     return 1;
 }

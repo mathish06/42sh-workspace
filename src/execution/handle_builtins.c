@@ -10,19 +10,19 @@
 static int handle_local_vars(char **args, mysh_t *shell)
 {
     if (my_strcmp(args[0], "set") == 0) {
-        my_set(shell, args);
+        shell->last_status = my_set(shell, args);
         return 1;
     }
     if (my_strcmp(args[0], "unset") == 0) {
-        my_unset(shell, args);
+        shell->last_status = my_unset(shell, args);
         return 1;
     }
     if (my_strcmp(args[0], "alias") == 0) {
-        my_alias(shell, args);
+        shell->last_status = my_alias(shell, args);
         return 1;
     }
     if (my_strcmp(args[0], "unalias") == 0) {
-        my_unalias(shell, args);
+        shell->last_status = my_unalias(shell, args);
         return 1;
     }
     return 0;
@@ -31,7 +31,15 @@ static int handle_local_vars(char **args, mysh_t *shell)
 static int handle_local_vars_second(char **args, mysh_t *shell)
 {
     if (my_strcmp(args[0], "repeat") == 0) {
-        my_repeat(shell, args);
+        shell->last_status = my_repeat(shell, args);
+        return 1;
+    }
+    if (my_strcmp(args[0], "which") == 0) {
+        shell->last_status = my_which(shell, args);
+        return 1;
+    }
+    if (my_strcmp(args[0], "where") == 0) {
+        shell->last_status = my_where(shell, args);
         return 1;
     }
     return 0;
@@ -40,19 +48,19 @@ static int handle_local_vars_second(char **args, mysh_t *shell)
 int handle_builtins(char **args, mysh_t *shell)
 {
     if (my_strcmp(args[0], "env") == 0) {
-        my_env(shell);
+        shell->last_status = my_env(shell);
         return 1;
     }
     if (my_strcmp(args[0], "setenv") == 0) {
-        my_setenv(shell, args);
+        shell->last_status = my_setenv(shell, args);
         return 1;
     }
     if (my_strcmp(args[0], "unsetenv") == 0) {
-        my_unsetenv(shell, args);
+        shell->last_status = my_unsetenv(shell, args);
         return 1;
     }
     if (my_strcmp(args[0], "cd") == 0) {
-        my_cd(args, shell);
+        shell->last_status = my_cd(args, shell);
         return 1;
     }
     if (handle_local_vars(args, shell) == 1)
