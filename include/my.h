@@ -33,6 +33,7 @@ char *my_strcpy(char *dest, char const *src);
 int my_strlen(char const *str);
 int my_strcmp(char const *s1, char const *s2);
 char *my_strcat(char *dest, char const *src);
+char *my_itoa(int nb);
 char *my_strndup(char const *src, int n);
 int main(int argc, char **argv, char **env);
 int mysh(char **env);

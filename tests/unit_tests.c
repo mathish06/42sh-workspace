@@ -784,9 +784,15 @@ Test(exec_pipe, basic_echo_cat, .init = redirect_all_std)
     ast_node_t left_node;
     ast_node_t right_node;
     ast_node_t pipe_node;
-    char *args_left[] = {"echo", "criterion_pipe_test", NULL};
-    char *args_right[] = {"cat", NULL};
+    char *args_left[] = {
+        my_strdup("echo"),
+        my_strdup("criterion_pipe_test"),
+        NULL
+    };
+    char *args_right[] = {my_strdup("cat"), NULL};
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
@@ -809,6 +815,9 @@ Test(exec_pipe, basic_echo_cat, .init = redirect_all_std)
 
     cr_assert_stdout_eq_str("criterion_pipe_test\n");
 
+    free(args_left[0]);
+    free(args_left[1]);
+    free(args_right[0]);
     free_env_list(shell.env);
 }
 
@@ -819,9 +828,11 @@ Test(exec_pipe, builtin_and_system_cmd, .init = redirect_all_std)
     ast_node_t left_node;
     ast_node_t right_node;
     ast_node_t pipe_node;
-    char *args_left[] = {"env", NULL};
-    char *args_right[] = {"grep", "MY_CUSTOM_VAR", NULL};
+    char *args_left[] = {my_strdup("env"), NULL};
+    char *args_right[] = {my_strdup("grep"), my_strdup("MY_CUSTOM_VAR"), NULL};
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
@@ -844,6 +855,9 @@ Test(exec_pipe, builtin_and_system_cmd, .init = redirect_all_std)
 
     cr_assert_stdout_eq_str("MY_CUSTOM_VAR=pipe_secret\n");
 
+    free(args_left[0]);
+    free(args_right[0]);
+    free(args_right[1]);
     free_env_list(shell.env);
 }
 
@@ -851,14 +865,16 @@ Test(exec_redir, redir_right_and_double_right)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    char *args_cmd[] = {"echo", "first_line", NULL};
-    char *args_file[] = {"/tmp/crit_out.txt", NULL};
+    char *args_cmd[] = {my_strdup("echo"), my_strdup("first_line"), NULL};
+    char *args_file[] = {my_strdup("/tmp/crit_out.txt"), NULL};
     ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
     ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
     ast_node_t redir_node = {NODE_REDIR_R, NULL, &cmd_node, &file_node};
     int fd;
     char buffer[100] = {0};
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
@@ -866,7 +882,8 @@ Test(exec_redir, redir_right_and_double_right)
 
     exec_redir_node(&redir_node, envp, &shell);
 
-    args_cmd[1] = "second_line";
+    free(args_cmd[1]);
+    args_cmd[1] = my_strdup("second_line");
     redir_node.type = NODE_REDIR_RR;
     exec_redir_node(&redir_node, envp, &shell);
 
@@ -879,6 +896,9 @@ Test(exec_redir, redir_right_and_double_right)
     cr_assert_str_eq(buffer, "first_line\nsecond_line\n");
 
     unlink("/tmp/crit_out.txt");
+    free(args_cmd[0]);
+    free(args_cmd[1]);
+    free(args_file[0]);
     free_env_list(shell.env);
 }
 
@@ -887,12 +907,14 @@ Test(exec_redir, redir_left, .init = redirect_all_std)
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
     int fd;
-    char *args_cmd[] = {"cat", NULL};
-    char *args_file[] = {"/tmp/crit_in.txt", NULL};
+    char *args_cmd[] = {my_strdup("cat"), NULL};
+    char *args_file[] = {my_strdup("/tmp/crit_in.txt"), NULL};
     ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
     ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
     ast_node_t redir_node = {NODE_REDIR_L, NULL, &cmd_node, &file_node};
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
@@ -905,6 +927,8 @@ Test(exec_redir, redir_left, .init = redirect_all_std)
     cr_assert_stdout_eq_str("hello_left\n");
 
     unlink("/tmp/crit_in.txt");
+    free(args_cmd[0]);
+    free(args_file[0]);
     free_env_list(shell.env);
 }
 
@@ -914,12 +938,14 @@ Test(exec_redir, redir_double_left_heredoc, .init = redirect_all_std)
     mysh_t shell;
     int pipefd[2];
     int saved_stdin;
-    char *args_cmd[] = {"cat", NULL};
-    char *args_file[] = {"EOF", NULL};
+    char *args_cmd[] = {my_strdup("cat"), NULL};
+    char *args_file[] = {my_strdup("EOF"), NULL};
     ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
     ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
     ast_node_t redir_node = {NODE_REDIR_LL, NULL, &cmd_node, &file_node};
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
@@ -937,6 +963,8 @@ Test(exec_redir, redir_double_left_heredoc, .init = redirect_all_std)
     close(saved_stdin);
 
     cr_assert_stdout_eq_str("heredoc_line\n");
+    free(args_cmd[0]);
+    free(args_file[0]);
     free_env_list(shell.env);
 }
 
@@ -944,12 +972,14 @@ Test(exec_redir, redir_errors, .init = redirect_all_std)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    char *args_cmd[] = {"echo", "test", NULL};
-    char *args_file[] = {"/root/forbidden.txt", NULL};
+    char *args_cmd[] = {my_strdup("echo"), my_strdup("test"), NULL};
+    char *args_file[] = {my_strdup("/root/forbidden.txt"), NULL};
     ast_node_t cmd_node = {NODE_COMMAND, args_cmd, NULL, NULL};
     ast_node_t file_node = {NODE_COMMAND, args_file, NULL, NULL};
     ast_node_t redir_node = {NODE_REDIR_R, NULL, &cmd_node, &file_node};
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
@@ -958,11 +988,15 @@ Test(exec_redir, redir_errors, .init = redirect_all_std)
     redir_node.type = NODE_REDIR_RR;
     exec_redir_node(&redir_node, envp, &shell);
 
-    args_file[0] = "/tmp/does_not_exist_42sh_xyz.txt";
+    free(args_file[0]);
+    args_file[0] = my_strdup("/tmp/does_not_exist_42sh_xyz.txt");
     redir_node.type = NODE_REDIR_L;
     exec_redir_node(&redir_node, envp, &shell);
 
     cr_assert(1);
+    free(args_cmd[0]);
+    free(args_cmd[1]);
+    free(args_file[0]);
     free_env_list(shell.env);
 }
 
@@ -1062,18 +1096,22 @@ Test(exec_ast, logic_and_operator, .init = redirect_all_std)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    char *args_left[] = {"true", NULL};
-    char *args_right[] = {"echo", "AND_WORKS", NULL};
+    char *args_left[] = {my_strdup("true"), NULL};
+    char *args_right[] = {my_strdup("echo"), my_strdup("AND_WORKS"), NULL};
     ast_node_t left_node = {NODE_COMMAND, args_left, NULL, NULL};
     ast_node_t right_node = {NODE_COMMAND, args_right, NULL, NULL};
     ast_node_t and_node = {NODE_AND, NULL, &left_node, &right_node};
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
-    shell.last_status = 0;
     exec_ast(&and_node, envp, &shell);
 
     cr_assert_stdout_eq_str("AND_WORKS\n");
+    free(args_left[0]);
+    free(args_right[0]);
+    free(args_right[1]);
     free_env_list(shell.env);
 }
 
@@ -1081,18 +1119,22 @@ Test(exec_ast, logic_or_operator, .init = redirect_all_std)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    char *args_left[] = {"false", NULL};
-    char *args_right[] = {"echo", "OR_WORKS", NULL};
+    char *args_left[] = {my_strdup("false"), NULL};
+    char *args_right[] = {my_strdup("echo"), my_strdup("OR_WORKS"), NULL};
     ast_node_t left_node = {NODE_COMMAND, args_left, NULL, NULL};
     ast_node_t right_node = {NODE_COMMAND, args_right, NULL, NULL};
     ast_node_t or_node = {NODE_OR, NULL, &left_node, &right_node};
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
-    shell.last_status = 0;
     exec_ast(&or_node, envp, &shell);
 
     cr_assert_stdout_eq_str("OR_WORKS\n");
+    free(args_left[0]);
+    free(args_right[0]);
+    free(args_right[1]);
     free_env_list(shell.env);
 }
 
@@ -1100,9 +1142,17 @@ Test(builtin_repeat, basic_execution, .init = redirect_all_std)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    char *args[] = {"repeat", "3", "echo", "test_repeat", NULL};
+    char *args[] = {
+        my_strdup("repeat"),
+        my_strdup("3"),
+        my_strdup("echo"),
+        my_strdup("test_repeat"),
+        NULL
+    };
     int ret;
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
@@ -1110,6 +1160,10 @@ Test(builtin_repeat, basic_execution, .init = redirect_all_std)
     cr_assert_eq(ret, 0);
     cr_assert_stdout_eq_str("test_repeat\ntest_repeat\ntest_repeat\n");
 
+    free(args[0]);
+    free(args[1]);
+    free(args[2]);
+    free(args[3]);
     free_env_list(shell.env);
 }
 
@@ -1122,6 +1176,8 @@ Test(builtin_repeat, too_few_args, .init = redirect_all_std)
     int ret1;
     int ret2;
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 
@@ -1144,6 +1200,8 @@ Test(builtin_repeat, negative_or_zero_count, .init = redirect_all_std)
     char *args[] = {"repeat", "-5", "echo", "test_repeat", NULL};
     int ret;
 
+    memset(&shell, 0, sizeof(mysh_t));
+    shell.last_status = 0;
     shell.env = env_to_list(envp);
     shell.alias = NULL;
 

@@ -61,6 +61,24 @@ static int copy_var_value(gstr_t *g, char *var_name, char *val)
     return 0;
 }
 
+static int append_escape_sequence(gstr_t *g, const char *line, int *i)
+{
+    if (gstr_append(g, &line[*i], 2) < 0)
+        return -1;
+    *i += 2;
+    return 1;
+}
+
+static int toggle_single_quote(gstr_t *g, const char *line, int *i,
+    struct expand_ctx_s *ctx)
+{
+    ctx->in_single_quote = !ctx->in_single_quote;
+    if (gstr_append(g, &line[*i], 1) < 0)
+        return -1;
+    *i += 1;
+    return 1;
+}
+
 static int expand_one_var(gstr_t *g, const char *line, int *i, mysh_t *shell)
 {
     int len = extract_var_name_len(&line[*i + 1]);
@@ -83,26 +101,47 @@ static int expand_one_var(gstr_t *g, const char *line, int *i, mysh_t *shell)
     return 0;
 }
 
-static int expand_step(gstr_t *g,
+static int expand_special_var(gstr_t *g,
     const char *line,
     int *i,
+    mysh_t *shell)
+{
+    char *str_val = NULL;
+
+    if (line[*i + 1] == '?')
+        str_val = my_itoa(shell->last_status);
+    else if (line[*i + 1] == '$')
+        str_val = my_itoa(getpid());
+    else
+        return 0;
+    if (str_val == NULL)
+        return -1;
+    if (gstr_append(g, str_val, my_strlen(str_val)) < 0) {
+        free(str_val);
+        return -1;
+    }
+    free(str_val);
+    *i += 2;
+    return 1;
+}
+
+static int expand_step(gstr_t *g, const char *line, int *i,
     struct expand_ctx_s *ctx)
 {
+    int is_special = 0;
+
     if (line[*i] == '\\' && line[*i + 1] != '\0' && ctx->in_single_quote == 0) {
-        if (gstr_append(g, &line[*i], 2) < 0)
-            return -1;
-        *i += 2;
-        return 1;
+        return append_escape_sequence(g, line, i);
     }
     if (line[*i] == '\'') {
-        ctx->in_single_quote = !ctx->in_single_quote;
-        if (gstr_append(g, &line[*i], 1) < 0)
-            return -1;
-        *i += 1;
-        return 1;
+        return toggle_single_quote(g, line, i, ctx);
     }
-    if (line[*i] == '$' && ctx->in_single_quote == 0)
+    if (line[*i] == '$' && ctx->in_single_quote == 0) {
+        is_special = expand_special_var(g, line, i, ctx->shell);
+        if (is_special != 0)
+            return is_special;
         return expand_one_var(g, line, i, ctx->shell);
+    }
     if (gstr_append(g, &line[*i], 1) < 0)
         return -1;
     *i += 1;
