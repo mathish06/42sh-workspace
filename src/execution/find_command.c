@@ -6,7 +6,7 @@
 */
 #include "../../include/my.h"
 
-static int has_slash(char *str)
+int has_slash(char *str)
 {
     int i = 0;
 
@@ -18,7 +18,7 @@ static int has_slash(char *str)
     return 0;
 }
 
-static char *try_path_composition(char *dir, char *cmd)
+char *try_path_composition(char *dir, char *cmd)
 {
     int len;
     char *full;
