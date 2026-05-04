@@ -51,7 +51,7 @@ static int analyze_one_arg(mysh_t *shell, char *arg)
         return 0;
     }
     my_puterr(arg);
-    my_puterr(": command not found.\n");
+    my_puterr(": Command not found.\n");
     return 1;
 }
 
