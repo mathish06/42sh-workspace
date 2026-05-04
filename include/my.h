@@ -97,6 +97,8 @@ char **replace_args_with_alias(char **old_args, char **alias_args);
 void expand_aliases(ast_node_t *node, mysh_t *shell);
 
 int my_repeat(mysh_t *shell, char **args);
+int my_which(mysh_t *shell, char **args);
+
 int handle_tab(char *buffer, line_state_t *st);
 void get_word_bounds(char *buffer, int i, int *start, int *end);
 comp_ctx_t *build_ctx(char *buffer, line_state_t *st);
