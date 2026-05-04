@@ -19,6 +19,19 @@ static void check_program_status(int status)
     write(2, "\n", 1);
 }
 
+static void expand_node_args(ast_node_t *node, mysh_t *shell)
+{
+    char *expanded;
+
+    for (int i = 0; node->args[i] != NULL; i++) {
+        expanded = expand_variable(node->args[i], shell);
+        if (expanded != NULL) {
+            free(node->args[i]);
+            node->args[i] = expanded;
+        }
+    }
+}
+
 static void run_child_process(char *path, ast_node_t *node, mysh_t *shell)
 {
     pid_t pid;
@@ -50,11 +63,12 @@ void exec_node_command(ast_node_t *node, char **env, mysh_t *shell)
     if (node == NULL || node->args == NULL || node->args[0] == NULL)
         return;
     expand_aliases(node, shell);
+    expand_node_args(node, shell);
     if (node->args == NULL || node->args[0] == NULL)
         return;
     if (handle_builtins(node->args, shell) == 1)
         return;
-    cmd_path = find_command(node->args[0], (shell));
+    cmd_path = find_command(node->args[0], shell);
     if (cmd_path == NULL) {
         my_puterr(node->args[0]);
         my_puterr(": Command not found.\n");
