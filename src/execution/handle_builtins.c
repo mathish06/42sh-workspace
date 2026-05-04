@@ -38,6 +38,10 @@ static int handle_local_vars_second(char **args, mysh_t *shell)
         shell->last_status = my_which(shell, args);
         return 1;
     }
+    if (my_strcmp(args[0], "where") == 0) {
+        shell->last_status = my_where(shell, args);
+        return 1;
+    }
     return 0;
 }
 
