@@ -1251,3 +1251,66 @@ Test(builtin_which, multiple_args, .init = redirect_all_std)
     cr_assert_stdout_eq_str("cd: shell built-in command.\n");
     cr_assert_stderr_eq_str("ghost_cmd_42sh: Command not found.\n");
 }
+
+Test(builtin_where, no_args, .init = redirect_all_std)
+{
+    mysh_t shell = {0};
+    char *args[] = {"where", NULL};
+    int ret;
+
+    ret = my_where(&shell, args);
+    cr_assert_eq(ret, 1);
+    cr_assert_stderr_eq_str("where: Too few arguments.\n");
+}
+
+Test(builtin_where, is_builtin, .init = redirect_all_std)
+{
+    mysh_t shell = {0};
+    char *args[] = {"where", "cd", NULL};
+    int ret;
+
+    ret = my_where(&shell, args);
+    cr_assert_eq(ret, 0);
+    cr_assert_stdout_eq_str("cd is a shell built-in\n");
+}
+
+Test(builtin_where, is_alias, .init = redirect_all_std)
+{
+    mysh_t shell = {0};
+    char *args[] = {"where", "ll", NULL};
+    int ret;
+
+    shell.alias = NULL;
+    add_alias(&(shell.alias), "ll", "ls -l");
+
+    ret = my_where(&shell, args);
+    cr_assert_eq(ret, 0);
+    cr_assert_stdout_eq_str("ll is aliased to ls -l\n");
+
+    free_alias_list(shell.alias);
+}
+
+Test(builtin_where, not_found, .init = redirect_all_std)
+{
+    mysh_t shell = {0};
+    char *args[] = {"where", "ghost_cmd_42sh", NULL};
+    int ret;
+
+    ret = my_where(&shell, args);
+    cr_assert_eq(ret, 1);
+    cr_assert_stdout_eq_str("");
+    cr_assert_stderr_eq_str("");
+}
+
+Test(builtin_where, multiple_args, .init = redirect_all_std)
+{
+    mysh_t shell = {0};
+    char *args[] = {"where", "cd", "ghost_cmd_42sh", NULL};
+    int ret;
+
+    ret = my_where(&shell, args);
+    
+    cr_assert_eq(ret, 1);
+    cr_assert_stdout_eq_str("cd is a shell built-in\n");
+    cr_assert_stderr_eq_str("");
+}
