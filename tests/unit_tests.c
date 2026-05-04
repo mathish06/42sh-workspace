@@ -1142,7 +1142,13 @@ Test(builtin_repeat, basic_execution, .init = redirect_all_std)
 {
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
     mysh_t shell;
-    char *args[] = {"repeat", "3", "echo", "test_repeat", NULL};
+    char *args[] = {
+        my_strdup("repeat"),
+        my_strdup("3"),
+        my_strdup("echo"),
+        my_strdup("test_repeat"),
+        NULL
+    };
     int ret;
 
     memset(&shell, 0, sizeof(mysh_t));
@@ -1154,6 +1160,10 @@ Test(builtin_repeat, basic_execution, .init = redirect_all_std)
     cr_assert_eq(ret, 0);
     cr_assert_stdout_eq_str("test_repeat\ntest_repeat\ntest_repeat\n");
 
+    free(args[0]);
+    free(args[1]);
+    free(args[2]);
+    free(args[3]);
     free_env_list(shell.env);
 }
 
