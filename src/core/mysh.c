@@ -64,7 +64,7 @@ static char *prepare_line(char *line, mysh_t *shell)
     history_add(shell->history, expanded);
     with_backticks = expand_backticks(expanded, shell);
     free(expanded);
-    return expanded;
+    return with_backticks;
 }
 
 static int process_ast(char *expanded, mysh_t *shell, char **env)
