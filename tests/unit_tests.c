@@ -1403,3 +1403,18 @@ Test(backticks, no_backticks)
     free(result);
     free_env_list(shell.env);
 }
+
+Test(backticks, no_backticks)
+{
+    mysh_t shell;
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    char *result;
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+    shell.last_status = 0;
+    result = expand_backticks("echo hello", &shell);
+    cr_assert_str_eq(result, "echo hello");
+    free(result);
+    free_env_list(shell.env);
+}
