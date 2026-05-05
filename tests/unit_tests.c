@@ -1372,3 +1372,19 @@ Test(builtin_where, multiple_args, .init = redirect_all_std)
     cr_assert_stdout_eq_str("cd is a shell built-in\n");
     cr_assert_stderr_eq_str("");
 }
+
+Test(backticks, basic_substitution)
+{
+    mysh_t shell;
+    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
+    char *result;
+
+    shell.env = env_to_list(envp);
+    shell.alias = NULL;
+    shell.last_status = 0;
+    result = expand_backticks("echo `echo hello`", &shell);
+    cr_assert_not_null(result);
+    cr_assert_str_eq(result, "echo hello");
+    free(result);
+    free_env_list(shell.env);
+}
