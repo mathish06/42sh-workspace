@@ -57,13 +57,14 @@ static ast_node_t *build_left_branch(token_t *head, token_t *split)
     return build_ast(head);
 }
 
-static int check_logic_error(ast_node_t *node, token_t *split)
+static int check_logic_error(ast_node_t *node, token_t *split, token_t *head)
 {
     if (node->type != NODE_AND && node->type != NODE_OR &&
         node->type != NODE_PIPE)
         return 0;
-    if (node->left == NULL || node->right == NULL) {
+    if (head == split || split->next == NULL)
         my_puterr("Invalid null command.\n");
+    if (node->left == NULL || node->right == NULL) {
         if (node->left != NULL)
             free_ast(node->left);
         if (node->right != NULL)
@@ -87,7 +88,7 @@ static ast_node_t *create_operator_node(token_t *head, token_t *split)
     node->args = NULL;
     node->left = build_left_branch(head, split);
     node->right = build_ast(split->next);
-    if (check_logic_error(node, split) == 1)
+    if (check_logic_error(node, split, head) == 1)
         return NULL;
     if (check_redir_error(node, split) == 1)
         return NULL;
