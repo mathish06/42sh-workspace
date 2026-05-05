@@ -57,6 +57,7 @@ SRC     =   main.c										\
 			src/parsing/tree_search.c					\
 			src/builtins/my_repeat.c					\
 			src/builtins/my_which.c						\
+			src/parsing/backticks.c						\
 			src/builtins/my_where.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
