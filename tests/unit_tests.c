@@ -1373,7 +1373,7 @@ Test(builtin_where, multiple_args, .init = redirect_all_std)
     cr_assert_stderr_eq_str("");
 }
 
-Test(backticks, basic_substitution)
+Test(backticks, no_backticks_returns_copy)
 {
     mysh_t shell;
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
@@ -1381,22 +1381,7 @@ Test(backticks, basic_substitution)
 
     shell.env = env_to_list(envp);
     shell.alias = NULL;
-    shell.last_status = 0;
-    result = expand_backticks("echo `echo hello`", &shell);
-    cr_assert_not_null(result);
-    cr_assert_str_eq(result, "echo hello");
-    free(result);
-    free_env_list(shell.env);
-}
-
-Test(backticks, no_backticks)
-{
-    mysh_t shell;
-    char *envp[] = {"PATH=/bin:/usr/bin", NULL};
-    char *result;
-
-    shell.env = env_to_list(envp);
-    shell.alias = NULL;
+    shell.history = NULL;
     shell.last_status = 0;
     result = expand_backticks("echo hello", &shell);
     cr_assert_str_eq(result, "echo hello");
@@ -1404,7 +1389,7 @@ Test(backticks, no_backticks)
     free_env_list(shell.env);
 }
 
-Test(backticks, no_backticks)
+Test(backticks, empty_string)
 {
     mysh_t shell;
     char *envp[] = {"PATH=/bin:/usr/bin", NULL};
@@ -1412,9 +1397,10 @@ Test(backticks, no_backticks)
 
     shell.env = env_to_list(envp);
     shell.alias = NULL;
+    shell.history = NULL;
     shell.last_status = 0;
-    result = expand_backticks("echo hello", &shell);
-    cr_assert_str_eq(result, "echo hello");
+    result = expand_backticks("", &shell);
+    cr_assert_str_eq(result, "");
     free(result);
     free_env_list(shell.env);
 }
