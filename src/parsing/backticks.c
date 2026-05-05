@@ -115,7 +115,6 @@ static char *one_backtick(char *current, int i, mysh_t *shell)
 
     if (end == -1)
         return current;
-    new_line = replace_backtick(current, i, end, shell);
     free(current);
     return new_line;
 }
