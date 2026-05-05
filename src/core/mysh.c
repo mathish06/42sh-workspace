@@ -52,6 +52,7 @@ static char *build_history_path(env_t *env)
 static char *prepare_line(char *line, mysh_t *shell)
 {
     char *expanded;
+    char *with_backticks;
 
     expanded = expand_history_events(line, shell->history);
     if (expanded == NULL)
@@ -61,6 +62,8 @@ static char *prepare_line(char *line, mysh_t *shell)
         my_putstr("\n");
     }
     history_add(shell->history, expanded);
+    with_backticks = expand_backticks(expanded, shell);
+    free(expanded);
     return expanded;
 }
 
