@@ -62,6 +62,10 @@ static char *prepare_line(char *line, mysh_t *shell)
         my_putstr("\n");
     }
     history_add(shell->history, expanded);
+    if (quotes_check(expanded) == 0) {
+        free(expanded);
+        return NULL;
+    }
     with_backticks = expand_backticks(expanded, shell);
     free(expanded);
     return with_backticks;
