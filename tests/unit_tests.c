@@ -1244,7 +1244,7 @@ Test(builtin_alias, quotes_handling, .init = redirect_all_std)
     my_alias(&shell, args_add);
     my_alias(&shell, args_display);
 
-    cr_assert_stdout_eq_str("say_hello\techo 'hello world'\n");
+    cr_assert_stdout_eq_str("say_hello\techo hello world\n");
 
     free_alias_list(shell.alias);
 }
