@@ -60,7 +60,8 @@ SRC     =   main.c										\
 			src/completion/completion_fs.c              \
 			src/termios/termios.c						\
 			src/alias/alias_tools.c						\
-			src/bonus/dynamic_prompt.c
+			src/bonus/dynamic_prompt.c					\
+			src/bonus/reception.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
