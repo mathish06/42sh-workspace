@@ -16,25 +16,37 @@ LIB_NAME =  libmy.a
 # 2. SOURCES
 SRC     =   main.c										\
 			src/environment/manage_list.c				\
+			src/environment/expand_variables.c			\
 			src/core/mysh.c								\
 			src/builtins/builtins.c						\
+			src/builtins/my_alias.c						\
+			src/builtins/my_unalias.c					\
+			src/builtins/my_repeat.c					\
+			src/builtins/my_which.c						\
+			src/builtins/my_where.c						\
 			src/builtins/my_cd.c						\
 			src/builtins/my_set.c						\
 			src/parsing/lexer.c							\
 			src/parsing/tree.c							\
 			src/parsing/inhibitors.c					\
+			src/parsing/backticks.c						\
+			src/parsing/tree_search.c					\
+			src/utils/utils_part_two.c					\
+			src/utils/completion_utils.c				\
+			src/utils/utils.c							\
+			src/utils/error_handling.c					\
 			src/execution/exec_ast.c					\
 			src/execution/exec_pipe.c					\
+			src/execution/alias_replacement.c			\
 			src/execution/find_command.c				\
 			src/execution/handle_builtins.c				\
+			src/execution/globbings.c 					\
 			src/execution/exec_redir.c					\
 			src/history/history.c						\
 			src/history/history_nav.c					\
 			src/history/history_lookup.c				\
 			src/history/expand_history.c				\
 			src/history/history_io.c					\
-			src/utils/utils_part_two.c					\
-			src/utils/completion_utils.c				\
 			src/completion/completion.c					\
 			src/completion/completion_collect.c			\
 			src/completion/completion_insert.c			\
@@ -46,19 +58,8 @@ SRC     =   main.c										\
 			src/completion/completion_path.c			\
 			src/completion/completion_first.c			\
 			src/completion/completion_fs.c              \
-			src/environment/expand_variables.c			\
-			src/utils/utils.c							\
-			src/utils/error_handling.c					\
 			src/termios/termios.c						\
 			src/alias/alias_tools.c						\
-			src/builtins/my_alias.c						\
-			src/builtins/my_unalias.c					\
-			src/execution/alias_replacement.c			\
-			src/parsing/tree_search.c					\
-			src/builtins/my_repeat.c					\
-			src/builtins/my_which.c						\
-			src/parsing/backticks.c						\
-			src/builtins/my_where.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\

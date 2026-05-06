@@ -19,6 +19,25 @@ void free_tab(char **tab)
     free(tab);
 }
 
+char **dup_args(char **args)
+{
+    char **new_args;
+    int len = 0;
+
+    if (args == NULL)
+        return NULL;
+    while (args[len] != NULL)
+        len++;
+    new_args = malloc(sizeof(char *) * (len + 1));
+    if (new_args == NULL)
+        return NULL;
+    for (int i = 0; i < len; i++) {
+        new_args[i] = my_strdup(args[i]);
+    }
+    new_args[len] = NULL;
+    return new_args;
+}
+
 char *my_getenv(env_t *env, char *name)
 {
     env_t *curr = env;
