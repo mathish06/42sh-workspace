@@ -138,5 +138,6 @@ int try_path_completion(line_ctx_t *lc, comp_ctx_t *ctx);
 char **expand_globbing(char **args);
 
 void display_dynamic_prompt(mysh_t *shell);
+void display_greeting(void);
 
 #endif
