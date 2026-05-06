@@ -14,5 +14,6 @@
 #define VERT      "\033[32m"
 #define BLEU      "\033[34m"
 #define CYAN      "\033[36m"
+#define MAGENTA   "\033[35m"
 
 #endif
