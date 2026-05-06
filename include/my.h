@@ -18,6 +18,7 @@
 #include <sys/ioctl.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include "./macros.h"
 
 
 #ifndef MY_H
@@ -32,6 +33,7 @@ char *my_strncpy(char *dest, char const *src, int n);
 char *my_strcpy(char *dest, char const *src);
 int my_strlen(char const *str);
 int my_strcmp(char const *s1, char const *s2);
+int my_strncmp(char const *s1, char const *s2, int n);
 char *my_strcat(char *dest, char const *src);
 char *my_itoa(int nb);
 char *my_strndup(char const *src, int n);
@@ -134,5 +136,7 @@ int already_in(comp_list_t *l, const char *name);
 comp_list_t *collect_path_commands(const char *prefix);
 int try_path_completion(line_ctx_t *lc, comp_ctx_t *ctx);
 char **expand_globbing(char **args);
+
+void display_dynamic_prompt(mysh_t *shell);
 
 #endif

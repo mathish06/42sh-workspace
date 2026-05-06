@@ -60,6 +60,15 @@ SRC     =   main.c										\
 			src/completion/completion_fs.c              \
 			src/termios/termios.c						\
 			src/alias/alias_tools.c						\
+			src/builtins/my_alias.c						\
+			src/builtins/my_unalias.c					\
+			src/execution/alias_replacement.c			\
+			src/parsing/tree_search.c					\
+			src/builtins/my_repeat.c					\
+			src/builtins/my_which.c						\
+			src/parsing/backticks.c						\
+			src/builtins/my_where.c						\
+			src/bonus/dynamic_prompt.c
 
 LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_putchar.c							\
@@ -72,7 +81,8 @@ LIB_SRC =   lib/my/my_put_nbr.c							\
 			lib/my/my_strlen.c							\
 			lib/my/my_strncpy.c							\
 			lib/my/my_strndup.c							\
-			lib/my/my_itoa.c
+			lib/my/my_itoa.c							\
+			lib/my/my_strncmp.c
 
 # 3. OBJETS
 TESTS_SRC = tests/unit_tests.c
