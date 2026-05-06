@@ -112,6 +112,8 @@ static void mysh_loop(mysh_t *shell, char **env)
 {
     char *line = NULL;
 
+    if (isatty(0))
+        display_greeting();
     while (1) {
         if (isatty(0))
             display_dynamic_prompt(shell);
