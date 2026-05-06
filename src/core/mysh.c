@@ -114,7 +114,7 @@ static void mysh_loop(mysh_t *shell, char **env)
 
     while (1) {
         if (isatty(0))
-            my_putstr("$> ");
+            display_dynamic_prompt(shell);
         line = my_getline(shell->history);
         if (handle_input(line, shell, env) == 1) {
             free(line);
