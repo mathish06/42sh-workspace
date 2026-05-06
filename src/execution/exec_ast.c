@@ -55,28 +55,33 @@ static void run_child_process(char *path, ast_node_t *node, mysh_t *shell)
     }
 }
 
-void exec_node_command(ast_node_t *node, char **env, mysh_t *shell)
+static void run_found_command(char *name, ast_node_t *node, mysh_t *shell)
 {
-    char *cmd_path = NULL;
+    char *cmd_path = find_command(name, shell);
 
-    (void) env;
-    if (node == NULL || node->args == NULL || node->args[0] == NULL)
-        return;
-    expand_aliases(node, shell);
-    expand_node_args(node, shell);
-    if (node->args == NULL || node->args[0] == NULL)
-        return;
-    if (handle_builtins(node->args, shell) == 1)
-        return;
-    cmd_path = find_command(node->args[0], shell);
     if (cmd_path == NULL) {
-        my_puterr(node->args[0]);
+        my_puterr(name);
         my_puterr(": Command not found.\n");
         shell->last_status = 1;
         return;
     }
     run_child_process(cmd_path, node, shell);
     free(cmd_path);
+}
+
+void exec_node_command(ast_node_t *node, char **env, mysh_t *shell)
+{
+    (void) env;
+    if (node == NULL || node->args == NULL || node->args[0] == NULL)
+        return;
+    expand_aliases(node, shell);
+    expand_node_args(node, shell);
+    node->args = expand_globbing(node->args);
+    if (node->args == NULL || node->args[0] == NULL)
+        return;
+    if (handle_builtins(node->args, shell) == 1)
+        return;
+    run_found_command(node->args[0], node, shell);
 }
 
 static void exec_logic_nodes(ast_node_t *node, char **env, mysh_t *shell)

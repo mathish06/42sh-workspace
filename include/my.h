@@ -40,6 +40,7 @@ char *my_strndup(char const *src, int n);
 int main(int argc, char **argv, char **env);
 int mysh(char **env);
 void free_tab(char **tab);
+char **dup_args(char **args);
 char *my_getenv(env_t *env, char *name);
 void print_exec_error(char *cmd);
 char *my_getline(history_t *hist);
@@ -134,6 +135,7 @@ int is_first_word(char *buffer, int word_start);
 int already_in(comp_list_t *l, const char *name);
 comp_list_t *collect_path_commands(const char *prefix);
 int try_path_completion(line_ctx_t *lc, comp_ctx_t *ctx);
+char **expand_globbing(char **args);
 
 void display_dynamic_prompt(mysh_t *shell);
 
